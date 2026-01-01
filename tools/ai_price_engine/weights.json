@@ -1,0 +1,9 @@
+{
+  "model_version": "mock-formula-v1",
+  "alpha": 0.65,
+  "beta": 0.35,
+  "gamma_multiplier": 0.05,
+  "competitive_ceiling_pct": 0.05,
+  "demand_default": 0.5
+}
+

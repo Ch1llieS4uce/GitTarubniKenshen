@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\Http;
 
 class PriceRecommendationEngine
 {
+    public function __construct(private readonly MarketSignalsService $marketSignalsService)
+    {
+    }
+
     public function recommendForListing(Listing $listing): array
     {
         $product = $listing->product;
@@ -20,23 +24,35 @@ class PriceRecommendationEngine
         $minPrice = $costPrice * (1 + max(0, $desiredMargin));
         $currentPrice = (float)($listing->price ?? 0);
 
-        $competitorAvg = $listing->priceHistory()
-            ->where('source', 'competitor')
-            ->latest('recorded_at')
-            ->take(20)
-            ->pluck('price')
-            ->map(fn ($p) => (float)$p)
-            ->avg();
+        $signals = $this->marketSignalsService->signalsForListing($listing);
+        $competitorAvg = is_numeric($signals['competitor_avg'] ?? null) ? (float)$signals['competitor_avg'] : null;
+        $demandFactor = is_numeric($signals['demand_factor'] ?? null) ? (float)$signals['demand_factor'] : 0.5;
+        $sampleSize = (int)($signals['sample_size'] ?? 0);
+
+        if ($competitorAvg === null) {
+            $competitorAvg = $listing->priceHistory()
+                ->where('source', 'competitor')
+                ->latest('recorded_at')
+                ->take(20)
+                ->pluck('price')
+                ->map(fn ($p) => (float)$p)
+                ->avg();
+        }
 
         $aiUrl = env('AI_PRICE_ENGINE_URL');
         if (is_string($aiUrl) && $aiUrl !== '') {
             $payload = [
+                'listing_id' => (int)$listing->id,
+                'product_id' => (int)($product?->id ?? 0),
                 'title' => $product?->title,
                 'cost_price' => $costPrice,
                 'desired_margin' => $desiredMargin,
                 'current_price' => $currentPrice,
                 'competitor_avg' => $competitorAvg,
+                'demand_factor' => $demandFactor,
                 'min_price' => $minPrice,
+                'market_sample_size' => $sampleSize,
+                'market_source' => (string)($signals['source'] ?? 'unknown'),
             ];
 
             try {
@@ -51,8 +67,14 @@ class PriceRecommendationEngine
                             $conf = $conf / 100;
                         }
 
+                        $bounded = $this->applyConstraints(
+                            (float)$recommended,
+                            $minPrice,
+                            is_numeric($competitorAvg) ? (float)$competitorAvg : null
+                        );
+
                         return [
-                            'recommended_price' => round((float)$recommended, 2),
+                            'recommended_price' => round($bounded, 2),
                             'confidence' => max(0, min(1, $conf)),
                             'model_version' => (string)($json['model_version'] ?? 'remote'),
                         ];
@@ -63,21 +85,51 @@ class PriceRecommendationEngine
             }
         }
 
-        $candidate = $currentPrice > 0 ? $currentPrice : $minPrice;
+        $recommended = $this->formulaRecommend(
+            $competitorAvg,
+            $minPrice,
+            $demandFactor,
+            $currentPrice
+        );
 
-        if ($competitorAvg !== null) {
-            $candidate = min($competitorAvg * 0.99, max($candidate, $minPrice));
-        } else {
-            $candidate = max($candidate, $minPrice);
-        }
-
-        $recommended = round($candidate, 2);
-        $confidence = $competitorAvg !== null ? 0.75 : 0.55;
+        $recommended = round($this->applyConstraints($recommended, $minPrice, $competitorAvg), 2);
+        $confidence = min(1, max(0, 0.5 + ($competitorAvg !== null ? 0.2 : 0) + ($sampleSize > 0 ? 0.15 : 0)));
 
         return [
             'recommended_price' => $recommended,
             'confidence' => $confidence,
-            'model_version' => 'heuristic-v1',
+            'model_version' => 'formula-v1',
         ];
+    }
+
+    private function formulaRecommend(?float $competitorAvg, float $minPrice, float $demandFactor, float $currentPrice): float
+    {
+        $alpha = (float)env('PRICING_ALPHA', 0.65);
+        $beta = (float)env('PRICING_BETA', 0.35);
+        $gammaMultiplier = (float)env('PRICING_GAMMA_MULTIPLIER', 0.05);
+
+        $demand = max(0.0, min(1.0, $demandFactor));
+
+        if ($competitorAvg === null || $competitorAvg <= 0) {
+            $base = $currentPrice > 0 ? $currentPrice : $minPrice;
+            return max($minPrice, $base);
+        }
+
+        $gamma = $gammaMultiplier * $competitorAvg;
+        return ($alpha * $competitorAvg) + ($beta * $minPrice) + ($gamma * $demand);
+    }
+
+    private function applyConstraints(float $candidate, float $minPrice, ?float $competitorAvg): float
+    {
+        $floor = $minPrice;
+
+        if ($competitorAvg === null || $competitorAvg <= 0) {
+            return max($candidate, $floor);
+        }
+
+        $ceilingPct = (float)env('PRICING_COMPETITIVE_CEILING_PCT', 0.05);
+        $ceiling = max($floor, $competitorAvg * (1 + max(0, $ceilingPct)));
+
+        return min(max($candidate, $floor), $ceiling);
     }
 }
