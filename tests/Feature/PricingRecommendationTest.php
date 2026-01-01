@@ -42,8 +42,7 @@ class PricingRecommendationTest extends TestCase
             'status' => 'active',
         ]);
 
-        putenv('AI_PRICE_ENGINE_URL=http://ai.test/recommend');
-        $_ENV['AI_PRICE_ENGINE_URL'] = 'http://ai.test/recommend';
+        config(['pricing.ai_price_engine_url' => 'http://ai.test/recommend']);
 
         Http::fake([
             'http://ai.test/recommend' => Http::response([
@@ -63,8 +62,7 @@ class PricingRecommendationTest extends TestCase
 
     public function test_formula_fallback_generates_competitive_price_and_records_market_snapshot(): void
     {
-        putenv('AI_PRICE_ENGINE_URL=');
-        $_ENV['AI_PRICE_ENGINE_URL'] = '';
+        config(['pricing.ai_price_engine_url' => null]);
 
         $user = User::factory()->create();
         $product = Product::create([
@@ -111,4 +109,3 @@ class PricingRecommendationTest extends TestCase
         $this->assertLessThanOrEqual(round($ceiling, 2), $rec['recommended_price']);
     }
 }
-

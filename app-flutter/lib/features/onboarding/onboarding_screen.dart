@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../auth/login_screen.dart';
+import '../../navigation/app_routes.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -26,6 +26,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
+              child: Row(
+                children: [
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () => Navigator.of(context)
+                        .pushReplacementNamed(AppRoutes.main),
+                    child: const Text('Skip'),
+                  ),
+                ],
+              ),
+            ),
             Expanded(
               child: PageView(
                 controller: _controller,
@@ -69,11 +82,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         );
                         return;
                       }
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => const LoginScreen()),
-                      );
+                      Navigator.of(context)
+                          .pushReplacementNamed(AppRoutes.main);
                     },
-                    child: Text(_page < 2 ? 'Next' : 'Get started'),
+                    child: Text(_page < 2 ? 'Next' : 'Start browsing'),
                   ),
                 ],
               ),

@@ -25,17 +25,21 @@ class SearchController extends Controller
 
         $results = $client->search($data['query'], $page, $pageSize);
 
-        $auditLogger->log(
-            optional($request->user())->id,
-            'search',
-            [
-                'platform' => $data['platform'],
-                'query' => $data['query'],
-                'page' => $page,
-                'page_size' => $pageSize,
-                'result_count' => is_countable($results) ? count($results) : null,
-            ]
-        );
+        try {
+            $auditLogger->log(
+                optional($request->user())->id,
+                'search',
+                [
+                    'platform' => $data['platform'],
+                    'query' => $data['query'],
+                    'page' => $page,
+                    'page_size' => $pageSize,
+                    'result_count' => is_countable($results) ? count($results) : null,
+                ]
+            );
+        } catch (\Throwable) {
+            // Do not block product discovery if auditing fails.
+        }
 
         if (!is_array($results)) {
             throw ValidationException::withMessages(['platform' => 'Search failed for platform ' . $data['platform']]);

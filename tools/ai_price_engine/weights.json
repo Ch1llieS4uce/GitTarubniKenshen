@@ -1,9 +1,14 @@
 {
-  "model_version": "mock-formula-v1",
+  "model_version": "mock-formula-v2",
   "alpha": 0.65,
   "beta": 0.35,
   "gamma_multiplier": 0.05,
-  "competitive_ceiling_pct": 0.05,
-  "demand_default": 0.5
+  "competitive_ceiling_pct": 0.07,
+  "demand_default": 0.5,
+  "sales_velocity_ref": 50.0,
+  "sales_velocity_weight": 0.12,
+  "stock_level_ref": 200.0,
+  "stock_multiplier_max_delta": 0.08,
+  "rating_weight": 0.08,
+  "current_price_smoothing": 0.1
 }
-

@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'fcm' => [
+        'server_key' => env('FCM_SERVER_KEY'),
+        'timeout' => (int) env('FCM_TIMEOUT', 3),
+    ],
+
 ];

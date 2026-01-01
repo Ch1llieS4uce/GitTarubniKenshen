@@ -10,37 +10,28 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ClickController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\SyncController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminSyncLogController;
 use App\Http\Controllers\Admin\AdminUserController;
-use App\Jobs\SyncPlatformProductsJob;
 use Illuminate\Http\Request;
 
-Route::post('/auth/register', [AuthController::class, 'register']);
-Route::post('/auth/login', [AuthController::class, 'login']);
+Route::middleware('throttle:auth-register')->post('/auth/register', [AuthController::class, 'register']);
+Route::middleware('throttle:auth-login')->post('/auth/login', [AuthController::class, 'login']);
 
 // Affiliate search and click tracking (public; add throttling as needed)
-Route::get('/search', [SearchController::class, 'search']);
-Route::get('/click/{platform}', [ClickController::class, 'redirect'])
+Route::middleware('throttle:public')->get('/search', [SearchController::class, 'search']);
+Route::middleware('throttle:public')->get('/click/{platform}', [ClickController::class, 'redirect'])
     ->whereIn('platform', ['shopee', 'lazada', 'tiktok']);
 
-Route::get('/home', [HomeController::class, 'home']);
+Route::middleware('throttle:public')->get('/home', [HomeController::class, 'home']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:auth'])->group(function () {
     Route::get('/me', function (\Illuminate\Http\Request $request) {
         return $request->user();
     });
 
-    Route::post('/sync/{platform_account_id}', function (Request $request, $platform_account_id) {
-        $data = $request->validate([
-            'job_type' => 'nullable|in:products,prices,inventory',
-        ]);
-
-        $jobType = $data['job_type'] ?? 'products';
-        SyncPlatformProductsJob::dispatch((int)$platform_account_id, $jobType);
-
-        return response()->json(['message' => 'Sync job queued', 'job_type' => $jobType], 202);
-    });
+    Route::post('/sync/{platform_account_id}', [SyncController::class, 'sync']);
 
 
     Route::post('/auth/logout', [AuthController::class, 'logout']);

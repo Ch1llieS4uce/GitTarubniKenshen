@@ -16,8 +16,8 @@ class PlatformAccountRequest extends FormRequest
         return [
             'platform' => 'required|in:shopee,lazada,tiktok',
             'account_name' => 'required|string|max:255',
-            'access_token' => 'nullable|string',
-            'refresh_token' => 'nullable|string',
+            'access_token' => 'nullable|string|max:4096',
+            'refresh_token' => 'nullable|string|max:4096',
             'additional_data' => 'nullable|array',
         ];
     }

@@ -50,7 +50,16 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $request->user()->tokens()->delete();
+        $user = $request->user();
+
+        // Revoke only the current token (logout this device/session), not all sessions.
+        $token = $user?->currentAccessToken();
+        if ($token) {
+            $token->delete();
+        } else {
+            // Fallback for session-based auth / edge-cases.
+            $user?->tokens()?->delete();
+        }
 
         return response()->json([
             'status' => 'success',

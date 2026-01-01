@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../navigation/app_routes.dart';
 import '../../state/auth_notifier.dart';
-import '../shell/admin_shell.dart';
-import '../shell/app_shell.dart';
-import 'register_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -26,10 +24,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (!mounted || !next.isAuthenticated || next.user == null) {
         return;
       }
-      final target = next.user!.isAdmin ? const AdminShell() : const AppShell();
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => target),
-        (route) => false,
+      Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
+        AppRoutes.main,
+        (r) => false,
       );
     });
   }
@@ -106,9 +103,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             TextButton(
               onPressed: auth.loading
                   ? null
-                  : () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                  : () => Navigator.of(context).pushNamed(
+                        AppRoutes.forgotPassword,
                       ),
+              child: const Text('Forgot password?'),
+            ),
+            const SizedBox(height: 4),
+            TextButton(
+              onPressed: auth.loading
+                  ? null
+                  : () => Navigator.of(context)
+                      .pushNamed(AppRoutes.register),
               child: const Text('Create an account'),
             ),
           ],

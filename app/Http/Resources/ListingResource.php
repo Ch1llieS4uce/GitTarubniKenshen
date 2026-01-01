@@ -12,9 +12,9 @@ class ListingResource extends JsonResource
             'id' => $this->id,
             'product' => new ProductResource($this->whenLoaded('product')),
             'platform_account' => [
-                'id' => $this->platformAccount->id ?? null,
-                'account_name' => $this->platformAccount->account_name ?? null,
-                'platform' => $this->platformAccount->platform ?? null,
+                'id' => $this->platformAccount?->id,
+                'account_name' => $this->platformAccount?->account_name,
+                'platform' => $this->platformAccount?->platform,
             ],
             'platform_product_id' => $this->platform_product_id,
             'price' => (float)$this->price,

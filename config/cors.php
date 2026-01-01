@@ -1,9 +1,14 @@
 <?php
 
+$allowedOrigins = trim((string) env('CORS_ALLOWED_ORIGINS', '*'));
+if ($allowedOrigins === '') {
+    $allowedOrigins = '*';
+}
+
 return [
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
     'allowed_methods' => ['*'],
-    'allowed_origins' => ['*'],
+    'allowed_origins' => array_map('trim', explode(',', $allowedOrigins)),
     'allowed_origins_patterns' => [],
     'allowed_headers' => ['*'],
     'exposed_headers' => [],

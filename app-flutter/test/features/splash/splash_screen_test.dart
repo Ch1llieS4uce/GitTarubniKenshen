@@ -1,4 +1,5 @@
 import 'package:baryabest_app/features/splash/splash_screen.dart';
+import 'package:baryabest_app/navigation/app_routes.dart';
 import 'package:baryabest_app/providers.dart';
 import 'package:baryabest_app/services/home_service.dart';
 import 'package:dio/dio.dart';
@@ -17,14 +18,20 @@ class _FakeHomeService extends HomeService {
 
 void main() {
   group('SplashScreen', () {
+    final routes = <String, WidgetBuilder>{
+      AppRoutes.onboarding: (_) => const _PlaceholderRoute(),
+      AppRoutes.main: (_) => const _PlaceholderRoute(),
+    };
+
     testWidgets('displays splash screen with gradient background', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             homeServiceProvider.overrideWithValue(_FakeHomeService()),
           ],
-          child: const MaterialApp(
-            home: SplashScreen(),
+          child: MaterialApp(
+            routes: routes,
+            home: const SplashScreen(),
           ),
         ),
       );
@@ -44,8 +51,9 @@ void main() {
           overrides: [
             homeServiceProvider.overrideWithValue(_FakeHomeService()),
           ],
-          child: const MaterialApp(
-            home: SplashScreen(),
+          child: MaterialApp(
+            routes: routes,
+            home: const SplashScreen(),
           ),
         ),
       );
@@ -62,8 +70,9 @@ void main() {
           overrides: [
             homeServiceProvider.overrideWithValue(_FakeHomeService()),
           ],
-          child: const MaterialApp(
-            home: SplashScreen(),
+          child: MaterialApp(
+            routes: routes,
+            home: const SplashScreen(),
           ),
         ),
       );
@@ -80,8 +89,9 @@ void main() {
           overrides: [
             homeServiceProvider.overrideWithValue(_FakeHomeService()),
           ],
-          child: const MaterialApp(
-            home: SplashScreen(),
+          child: MaterialApp(
+            routes: routes,
+            home: const SplashScreen(),
           ),
         ),
       );
@@ -98,8 +108,9 @@ void main() {
           overrides: [
             homeServiceProvider.overrideWithValue(_FakeHomeService()),
           ],
-          child: const MaterialApp(
-            home: SplashScreen(),
+          child: MaterialApp(
+            routes: routes,
+            home: const SplashScreen(),
           ),
         ),
       );
@@ -116,4 +127,13 @@ void main() {
       expect(find.byType(SplashScreen), findsNothing);
     });
   });
+}
+
+class _PlaceholderRoute extends StatelessWidget {
+  const _PlaceholderRoute();
+
+  @override
+  Widget build(BuildContext context) => const Scaffold(
+        body: Center(child: Text('placeholder')),
+      );
 }

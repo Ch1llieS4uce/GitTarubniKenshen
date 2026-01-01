@@ -3,10 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../navigation/app_routes.dart';
 import '../../state/auth_notifier.dart';
-import '../shell/admin_shell.dart';
-import '../shell/app_shell.dart';
-import '../shell/guest_shell.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -26,12 +24,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         return;
       }
       final auth = ref.read(authNotifierProvider);
-      final target = auth.isAuthenticated && auth.user != null
-          ? (auth.user!.isAdmin ? const AdminShell() : const AppShell())
-          : const GuestShell();
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => target),
-      );
+      final route = auth.isAuthenticated && auth.user != null
+          ? AppRoutes.main
+          : AppRoutes.onboarding;
+      Navigator.of(context).pushReplacementNamed(route);
     });
   }
 

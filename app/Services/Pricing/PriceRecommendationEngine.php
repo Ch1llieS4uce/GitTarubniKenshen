@@ -39,7 +39,7 @@ class PriceRecommendationEngine
                 ->avg();
         }
 
-        $aiUrl = env('AI_PRICE_ENGINE_URL');
+        $aiUrl = config('pricing.ai_price_engine_url');
         if (is_string($aiUrl) && $aiUrl !== '') {
             $payload = [
                 'listing_id' => (int)$listing->id,
@@ -104,9 +104,9 @@ class PriceRecommendationEngine
 
     private function formulaRecommend(?float $competitorAvg, float $minPrice, float $demandFactor, float $currentPrice): float
     {
-        $alpha = (float)env('PRICING_ALPHA', 0.65);
-        $beta = (float)env('PRICING_BETA', 0.35);
-        $gammaMultiplier = (float)env('PRICING_GAMMA_MULTIPLIER', 0.05);
+        $alpha = (float) config('pricing.alpha', 0.65);
+        $beta = (float) config('pricing.beta', 0.35);
+        $gammaMultiplier = (float) config('pricing.gamma_multiplier', 0.05);
 
         $demand = max(0.0, min(1.0, $demandFactor));
 
@@ -127,7 +127,7 @@ class PriceRecommendationEngine
             return max($candidate, $floor);
         }
 
-        $ceilingPct = (float)env('PRICING_COMPETITIVE_CEILING_PCT', 0.05);
+        $ceilingPct = (float) config('pricing.competitive_ceiling_pct', 0.05);
         $ceiling = max($floor, $competitorAvg * (1 + max(0, $ceilingPct)));
 
         return min(max($candidate, $floor), $ceiling);

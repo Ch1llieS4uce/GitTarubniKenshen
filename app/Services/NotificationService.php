@@ -29,6 +29,11 @@ class NotificationService
 
         // Optional: Send via FCM if you store device tokens (pseudo)
         if (!empty($meta['fcm_tokens']) && is_array($meta['fcm_tokens'])) {
+            $serverKey = (string) config('services.fcm.server_key', '');
+            if ($serverKey === '') {
+                return $notif;
+            }
+
             try {
                 $payload = [
                     'registration_ids' => $meta['fcm_tokens'],
@@ -39,9 +44,8 @@ class NotificationService
                     'data' => $meta['data'] ?? [],
                 ];
 
-                // Use your FCM server key in env('FCM_SERVER_KEY')
-                Http::withHeaders([
-                    'Authorization' => 'key=' . env('FCM_SERVER_KEY'),
+                Http::timeout((int) config('services.fcm.timeout', 3))->withHeaders([
+                    'Authorization' => 'key=' . $serverKey,
                     'Content-Type'  => 'application/json',
                 ])->post('https://fcm.googleapis.com/fcm/send', $payload);
             } catch (\Throwable $e) {

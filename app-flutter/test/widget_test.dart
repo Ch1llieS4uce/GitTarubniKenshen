@@ -25,11 +25,20 @@ void main() {
       ),
     );
 
+    // App starts on the device home mock (debug default); tap to open splash.
+    expect(find.text('Tap to open'), findsOneWidget);
+    await tester.tap(find.text('Tap to open'));
+    await tester.pumpAndSettle();
+
     // Wait for splash delay + navigation transition.
     await tester.pump(const Duration(seconds: 2));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
 
-    expect(find.text('Login / Register'), findsOneWidget);
+    // Splash routes guests to onboarding; skip to reach the guest home.
+    expect(find.text('Skip'), findsOneWidget);
+    await tester.tap(find.text('Skip'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sign in to unlock more'), findsOneWidget);
   });
 }

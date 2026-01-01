@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../navigation/app_routes.dart';
 import '../../state/auth_notifier.dart';
-import '../shell/admin_shell.dart';
-import '../shell/app_shell.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -26,10 +25,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       if (!mounted || !next.isAuthenticated || next.user == null) {
         return;
       }
-      final target = next.user!.isAdmin ? const AdminShell() : const AppShell();
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => target),
-        (route) => false,
+      Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil(
+        AppRoutes.main,
+        (r) => false,
       );
     });
   }

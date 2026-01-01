@@ -2,6 +2,9 @@
 
 use Laravel\Sanctum\Sanctum;
 
+$expiration = env('SANCTUM_EXPIRATION');
+$expiration = is_numeric($expiration) && (int) $expiration > 0 ? (int) $expiration : null;
+
 return [
 
     /*
@@ -47,7 +50,7 @@ return [
     |
     */
 
-    'expiration' => null,
+    'expiration' => $expiration,
 
     /*
     |--------------------------------------------------------------------------
