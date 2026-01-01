@@ -4,7 +4,7 @@
 - Flutter customer app in `app-flutter/` with onboarding, auth, dropshipper flows (home/search/products/inventory/alerts/profile), and admin flows (dashboard/users/sync logs).
 - Laravel API endpoints under `routes/api.php` using Sanctum bearer tokens.
 - A “working mock sync” path: platform sync uses the sample affiliate clients so you can test end-to-end without real Shopee/Lazada/TikTok credentials.
-- AI pricing: `GET /api/listings/{id}/recommendation` stores a `recommendations` row using a heuristic engine, with an optional external AI override via `AI_PRICE_ENGINE_URL`.
+- AI pricing: `GET /api/listings/{id}/recommendation` stores a `recommendations` row using a formula-based engine (market signals are derived from the mock marketplace clients), with an optional external AI override via `AI_PRICE_ENGINE_URL` (see `tools/ai_price_engine/`).
 
 ## Local setup
 ### Backend
@@ -16,6 +16,9 @@
 3. Run API + queue worker (sync runs via queue):
    - `php artisan serve --host 0.0.0.0 --port 8000`
    - `php artisan queue:work`
+4. Optional: run the mock AI price engine and set `AI_PRICE_ENGINE_URL`:
+   - `py tools/ai_price_engine/server.py --port 9010`
+   - `AI_PRICE_ENGINE_URL=http://127.0.0.1:9010/recommend`
 
 ### Flutter
 1. `cd app-flutter`
@@ -39,4 +42,3 @@
 - Add secure token persistence in Flutter (e.g. Keychain/Keystore) and refresh-token handling where applicable.
 - Add push notifications (FCM/APNs) and server-side fanout (Laravel events/queues).
 - Add platform webhooks (where available) to approach real-time sync instead of polling/scheduling only.
-

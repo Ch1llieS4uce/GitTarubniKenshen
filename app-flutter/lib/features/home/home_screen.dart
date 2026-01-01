@@ -5,6 +5,11 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../config/app_config.dart';
 import '../../models/affiliate_product.dart';
 import '../../services/click_tracker.dart';
+import '../../state/auth_notifier.dart';
+import '../../widgets/affiliate_product_detail_sheet.dart';
+import '../../widgets/ai_recommendation_badge.dart';
+import '../auth/login_screen.dart';
+import '../auth/register_screen.dart';
 import '../search/search_screen.dart';
 import 'home_notifier.dart';
 
@@ -28,6 +33,8 @@ const _trendingTopics = [
   'New Arrivals',
 ];
 
+enum _AuthEntry { login, register }
+
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -36,6 +43,14 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  void _openAuthMenu(_AuthEntry action) {
+    final target =
+        action == _AuthEntry.login ? const LoginScreen() : const RegisterScreen();
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => target),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -53,6 +68,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = ref.watch(authNotifierProvider);
     final state = ref.watch(homeNotifierProvider);
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -66,40 +82,77 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'BaryaBest',
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.1,
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'BaryaBest',
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.1,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 6),
-                        Text(
-                          'Curated deals, bold colors, real insights',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.white70,
+                          SizedBox(height: 6),
+                          Text(
+                            'Curated deals, bold colors, real insights',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white70,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white24,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Icon(
-                        Icons.notifications,
-                        color: Colors.white,
+                        ],
                       ),
                     ),
+                    const SizedBox(width: 12),
+                    if (auth.isAuthenticated)
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white24,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Icon(
+                          Icons.notifications,
+                          color: Colors.white,
+                        ),
+                      )
+                    else
+                      PopupMenuButton<_AuthEntry>(
+                        onSelected: _openAuthMenu,
+                        tooltip: 'Account',
+                        itemBuilder: (context) => const [
+                          PopupMenuItem(
+                            value: _AuthEntry.login,
+                            child: Text('Login'),
+                          ),
+                          PopupMenuItem(
+                            value: _AuthEntry.register,
+                            child: Text('Register'),
+                          ),
+                        ],
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white24,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Text(
+                            'Login / Register',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -295,54 +348,57 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildError(String error) => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.red.shade50,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Icon(
-                Icons.error_outline,
-                size: 48,
-                color: Colors.red.shade400,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Oops! Something went wrong',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade800,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              error,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () => ref.read(homeNotifierProvider.notifier).load(),
-              icon: const Icon(Icons.refresh),
-              label: const Text('Try Again'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF7A18),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                child: Icon(
+                  Icons.error_outline,
+                  size: 48,
+                  color: Colors.red.shade400,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Text(
+                'Oops! Something went wrong',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade800,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                error,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: () => ref.read(homeNotifierProvider.notifier).load(),
+                icon: const Icon(Icons.refresh),
+                label: const Text('Try Again'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF7A18),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       );
 }
@@ -458,6 +514,7 @@ class _ProductCard extends StatelessWidget {
           child: InkWell(
             borderRadius: BorderRadius.circular(28),
             onTap: () => _openAffiliate(context, item),
+            onLongPress: () => _showDetails(context),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -605,6 +662,13 @@ class _ProductCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         _PlatformFlag(item.platform),
+                        if (item.ai?.recommendedPrice != null) ...[
+                          const SizedBox(height: 10),
+                          AiRecommendationBadge(
+                            recommendation: item.ai,
+                            compact: true,
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -614,6 +678,21 @@ class _ProductCard extends StatelessWidget {
           ),
         ),
       );
+
+  Future<void> _showDetails(BuildContext context) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (_) => AffiliateProductDetailSheet(
+        product: item,
+        onOpen: () async {
+          Navigator.of(context).pop();
+          await _openAffiliate(context, item);
+        },
+      ),
+    );
+  }
 
   Future<void> _openAffiliate(
     BuildContext context,

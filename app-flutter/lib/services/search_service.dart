@@ -56,6 +56,14 @@ class SearchService {
   }
 
   List<AffiliateProduct> _getMockSearchResults(String query, String platform) {
+    AIRecommendation ai(double price, int seed) => AIRecommendation(
+          recommendedPrice: price * (1.08 + (seed % 4) * 0.02),
+          confidence: 0.72 + (seed % 3) * 0.08,
+          source: 'mock_formula',
+          modelVersion: 'mock-formula-v1',
+          reason: 'Computed from mock competitor prices and demand signals.',
+        );
+
     final mockProducts = [
       AffiliateProduct(
         platform: platform == 'all' ? 'lazada' : platform,
@@ -69,6 +77,7 @@ class SearchService {
         rating: 4.8,
         reviewCount: 3241,
         image: 'https://picsum.photos/seed/${query}1/200/200',
+        ai: ai(799, 1),
       ),
       AffiliateProduct(
         platform: platform == 'all' ? 'shopee' : platform,
@@ -82,6 +91,7 @@ class SearchService {
         rating: 4.6,
         reviewCount: 1823,
         image: 'https://picsum.photos/seed/${query}2/200/200',
+        ai: ai(599, 2),
       ),
       AffiliateProduct(
         platform: platform == 'all' ? 'lazada' : platform,
@@ -95,6 +105,7 @@ class SearchService {
         rating: 4.5,
         reviewCount: 982,
         image: 'https://picsum.photos/seed/${query}3/200/200',
+        ai: ai(449, 3),
       ),
       AffiliateProduct(
         platform: platform == 'all' ? 'shopee' : platform,
@@ -108,6 +119,7 @@ class SearchService {
         rating: 4.9,
         reviewCount: 5621,
         image: 'https://picsum.photos/seed/${query}4/200/200',
+        ai: ai(1299, 4),
       ),
       AffiliateProduct(
         platform: platform == 'all' ? 'lazada' : platform,
@@ -121,6 +133,7 @@ class SearchService {
         rating: 4.3,
         reviewCount: 742,
         image: 'https://picsum.photos/seed/${query}5/200/200',
+        ai: ai(299, 5),
       ),
       AffiliateProduct(
         platform: platform == 'all' ? 'shopee' : platform,
@@ -134,6 +147,7 @@ class SearchService {
         rating: 4.7,
         reviewCount: 2134,
         image: 'https://picsum.photos/seed/${query}6/200/200',
+        ai: ai(1899, 6),
       ),
     ];
 

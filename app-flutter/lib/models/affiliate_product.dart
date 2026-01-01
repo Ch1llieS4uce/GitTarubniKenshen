@@ -57,6 +57,8 @@ class AIRecommendation {
     this.recommendedPrice,
     this.confidence,
     this.source,
+    this.reason,
+    this.modelVersion,
   });
 
   factory AIRecommendation.fromJson(Map<String, dynamic> json) =>
@@ -64,9 +66,13 @@ class AIRecommendation {
         recommendedPrice: (json['recommended_price'] as num?)?.toDouble(),
         confidence: (json['confidence'] as num?)?.toDouble(),
         source: json['source'] as String?,
+        reason: json['reason'] as String?,
+        modelVersion: json['model_version'] as String?,
       );
 
   final double? recommendedPrice;
   final double? confidence;
   final String? source;
+  final String? reason;
+  final String? modelVersion;
 }

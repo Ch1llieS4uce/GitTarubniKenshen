@@ -1,28 +1,44 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../home/home_screen.dart';
+import '../../state/auth_notifier.dart';
+import '../shell/admin_shell.dart';
+import '../shell/app_shell.dart';
+import '../shell/guest_shell.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends ConsumerState<SplashScreen> {
+  Timer? _timer;
+
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 2), () {
+    _timer = Timer(const Duration(seconds: 2), () {
       if (!mounted) {
         return;
       }
+      final auth = ref.read(authNotifierProvider);
+      final target = auth.isAuthenticated && auth.user != null
+          ? (auth.user!.isAdmin ? const AdminShell() : const AppShell())
+          : const GuestShell();
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        MaterialPageRoute(builder: (_) => target),
       );
     });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -75,6 +91,25 @@ class _SplashScreenState extends State<SplashScreen> {
                     fontSize: 24,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const Text(
+                  'Loading…',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                const SizedBox(
+                  width: 34,
+                  height: 34,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
                 ),
               ],

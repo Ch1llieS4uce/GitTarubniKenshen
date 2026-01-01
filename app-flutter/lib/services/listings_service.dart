@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../models/listing.dart';
+import '../models/price_history_entry.dart';
 
 class ListingsService {
   ListingsService(this.dio);
@@ -38,5 +39,14 @@ class ListingsService {
     final res = await dio.get('/api/listings/$listingId/recommendation');
     return (res.data as Map).cast<String, dynamic>();
   }
-}
 
+  Future<List<PriceHistoryEntry>> priceHistory(int listingId) async {
+    final res = await dio.get('/api/listings/$listingId/prices');
+    final data = (res.data as List<dynamic>? ?? const [])
+        .whereType<Map>()
+        .map((e) => PriceHistoryEntry.fromJson(e.cast<String, dynamic>()))
+        .toList();
+
+    return data;
+  }
+}

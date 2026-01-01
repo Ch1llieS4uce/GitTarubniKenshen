@@ -5,6 +5,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../config/app_config.dart';
 import '../../models/affiliate_product.dart';
 import '../../services/click_tracker.dart';
+import '../../widgets/affiliate_product_detail_sheet.dart';
+import '../../widgets/ai_recommendation_badge.dart';
 import 'search_notifier.dart';
 
 const _searchGradient = LinearGradient(
@@ -360,6 +362,7 @@ class _ResultCard extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             onTap: () => _openAffiliate(context, item),
+            onLongPress: () => _showDetails(context),
             borderRadius: BorderRadius.circular(20),
             child: Padding(
               padding: const EdgeInsets.all(14),
@@ -481,6 +484,13 @@ class _ResultCard extends StatelessWidget {
                             ],
                           ],
                         ),
+                        if (item.ai?.recommendedPrice != null) ...[
+                          const SizedBox(height: 10),
+                          AiRecommendationBadge(
+                            recommendation: item.ai,
+                            compact: true,
+                          ),
+                        ],
                         const SizedBox(height: 8),
                         Row(
                           children: [
@@ -523,6 +533,21 @@ class _ResultCard extends StatelessWidget {
           ),
         ),
       );
+
+  Future<void> _showDetails(BuildContext context) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (_) => AffiliateProductDetailSheet(
+        product: item,
+        onOpen: () async {
+          Navigator.of(context).pop();
+          await _openAffiliate(context, item);
+        },
+      ),
+    );
+  }
 
   Future<void> _openAffiliate(
     BuildContext context,
