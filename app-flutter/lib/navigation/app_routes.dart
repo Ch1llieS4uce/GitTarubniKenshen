@@ -19,6 +19,7 @@ class AppRoutes {
   // Products (stack screens)
   static const productList = '/products';
   static const productDetail = '/products/detail';
+  static const exploreProducts = '/products/explore';
 
   // ✅ Tabs + stacks needed by your navigation design
   static const compare = '/compare';

@@ -94,9 +94,12 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Text(
+            const Text(
               'Compare prices across Shopee, Lazada, and TikTok Shop.',
-              style: TextStyle(color: scheme.onSurface.withOpacity(0.75)),
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 12),
             TextField(

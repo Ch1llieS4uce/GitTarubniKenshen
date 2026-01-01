@@ -229,7 +229,7 @@ class TikTokShopClient implements ProductSearchClient
             ],
         ];
 
-        $products = $this->expandProducts($baseProducts, 100, 'TT', 3101);
+        $products = $this->expandProducts($baseProducts, 2000, 'TT', 3101);
 
         // Add platform and affiliate URL to all products
         $products = array_map(function (array $product) {
@@ -247,7 +247,7 @@ class TikTokShopClient implements ProductSearchClient
 
             // If no exact matches, return all products (simulating search)
             if (empty($products)) {
-                $products = $this->expandProducts($baseProducts, 100, 'TT', 3101);
+                $products = $this->expandProducts($baseProducts, 2000, 'TT', 3101);
                 return array_map(function (array $product) {
                     $product['platform'] = 'tiktok';
                     $product['affiliate_url'] = $this->createAffiliateLink($product['url']);

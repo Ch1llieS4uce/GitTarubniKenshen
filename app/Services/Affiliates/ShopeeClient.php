@@ -229,7 +229,7 @@ class ShopeeClient implements ProductSearchClient
             ],
         ];
 
-        $products = $this->expandProducts($baseProducts, 100, 'SP', 2101);
+        $products = $this->expandProducts($baseProducts, 2000, 'SP', 2101);
 
         // Add platform and affiliate URL to all products
         $products = array_map(function (array $product) {
@@ -247,7 +247,7 @@ class ShopeeClient implements ProductSearchClient
 
             // If no exact matches, return all products (simulating search)
             if (empty($products)) {
-                $products = $this->expandProducts($baseProducts, 100, 'SP', 2101);
+                $products = $this->expandProducts($baseProducts, 2000, 'SP', 2101);
                 return array_map(function (array $product) {
                     $product['platform'] = 'shopee';
                     $product['affiliate_url'] = $this->createAffiliateLink($product['url']);

@@ -1,17 +1,37 @@
 import 'package:flutter/foundation.dart';
 
 class AppConfig {
-  /// Change this for device/LAN testing or pass via --dart-define=API_BASE_URL=...
-  /// For Android Emulator: use 10.0.2.2 (routes to host machine's localhost)
-  /// For iOS Simulator: use 127.0.0.1
-  /// For physical device: use your computer's LAN IP (e.g., 192.168.x.x)
-  static const baseUrl = String.fromEnvironment('API_BASE_URL',
-      defaultValue: 'http://10.0.2.2:8000');
+  /// API Base URL configuration:
+  /// - Web: uses localhost:8000 (same-origin or CORS-enabled)
+  /// - Android Emulator: uses 10.0.2.2:8000 (routes to host machine)
+  /// - iOS Simulator: uses 127.0.0.1:8000
+  /// - Physical device: use your computer's LAN IP via --dart-define=API_BASE_URL
+  static String get baseUrl {
+    const envUrl = String.fromEnvironment('API_BASE_URL', defaultValue: '');
+    if (envUrl.isNotEmpty) {
+      return envUrl;
+    }
+    // Web builds use localhost, mobile emulators use platform-specific localhost
+    if (kIsWeb) {
+      return 'http://localhost:8000';
+    }
+    // For Android emulator, 10.0.2.2 maps to host's localhost
+    return 'http://10.0.2.2:8000';
+  }
 
-  /// Enable mock data for development without backend
-  /// Set to false when backend is available
-  static const useMockData = bool.fromEnvironment('USE_MOCK_DATA',
-      defaultValue: false);
+  /// Enable mock data for development without backend.
+  /// - Debug/profile: defaults to true (no backend needed for development)
+  /// - Release: defaults to false (use real API)
+  /// Override via --dart-define=USE_MOCK_DATA=true/false
+  static bool get useMockData {
+    // Check if explicitly set via environment
+    const envMockSet = bool.hasEnvironment('USE_MOCK_DATA');
+    if (envMockSet) {
+      return const bool.fromEnvironment('USE_MOCK_DATA');
+    }
+    // Default: true for debug/profile, false for release
+    return !kReleaseMode;
+  }
 
   /// Optional demo screen to match the "phone home screen" mock in designs.
   /// - Debug/profile: defaults to false (real app starts at Splash)

@@ -35,17 +35,46 @@ class ProfileScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(20),
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
+                gradient: LinearGradient(
+                  colors: [
+                    Theme.of(context).colorScheme.primary.withOpacity(0.15),
+                    Theme.of(context).colorScheme.surface,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                ),
               ),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 26,
-                    child: Text(
-                      avatarLetter,
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          Theme.of(context).colorScheme.primary,
+                          Theme.of(context).colorScheme.secondary,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      radius: 30,
+                      backgroundColor: Colors.transparent,
+                      child: Text(
+                        avatarLetter,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -80,22 +109,20 @@ class ProfileScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 20),
             if (!isAuthenticated) ...[
               const SignInToUnlockCard(
                 title: 'You are browsing as Guest',
                 subtitle:
                     'Sign in to connect stores, enable alerts, and sync inventory tools.',
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 20),
             ],
-            ListTile(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              tileColor: Theme.of(context).colorScheme.surface,
-              leading: const Icon(Icons.link),
-              title: const Text('Platform accounts'),
-              subtitle: const Text('Connect and trigger sync'),
-              trailing: const Icon(Icons.chevron_right),
+            _ProfileMenuItem(
+              icon: Icons.link,
+              iconColor: const Color(0xFFFF6B4A),
+              title: 'Platform accounts',
+              subtitle: 'Connect and trigger sync',
               onTap: isAuthenticated
                   ? () => Navigator.of(context)
                       .pushNamed(AppRoutes.platformAccounts)
@@ -104,14 +131,12 @@ class ProfileScreen extends ConsumerWidget {
                         message: 'Login required to connect your stores.',
                       ),
             ),
-            const SizedBox(height: 14),
-            ListTile(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              tileColor: Theme.of(context).colorScheme.surface,
-              leading: const Icon(Icons.store_mall_directory_outlined),
-              title: const Text('Inventory tools'),
-              subtitle: const Text('Sync and manage your listings'),
-              trailing: const Icon(Icons.chevron_right),
+            const SizedBox(height: 12),
+            _ProfileMenuItem(
+              icon: Icons.store_mall_directory_outlined,
+              iconColor: const Color(0xFF15657B),
+              title: 'Inventory tools',
+              subtitle: 'Sync and manage your listings',
               onTap: isAuthenticated
                   ? () =>
                       Navigator.of(context).pushNamed(AppRoutes.inventory)
@@ -120,14 +145,12 @@ class ProfileScreen extends ConsumerWidget {
                         message: 'Login required to access inventory sync.',
                       ),
             ),
-            const SizedBox(height: 14),
-            ListTile(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              tileColor: Theme.of(context).colorScheme.surface,
-              leading: const Icon(Icons.notifications_none),
-              title: const Text('Price alerts'),
-              subtitle: const Text('Get notified on price changes'),
-              trailing: const Icon(Icons.chevron_right),
+            const SizedBox(height: 12),
+            _ProfileMenuItem(
+              icon: Icons.notifications_none,
+              iconColor: const Color(0xFFF15A29),
+              title: 'Price alerts',
+              subtitle: 'Get notified on price changes',
               onTap: isAuthenticated
                   ? () =>
                       Navigator.of(context).pushNamed(AppRoutes.alerts)
@@ -136,26 +159,106 @@ class ProfileScreen extends ConsumerWidget {
                         message: 'Login required to enable price alerts.',
                       ),
             ),
-            const SizedBox(height: 14),
-            ListTile(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              tileColor: Theme.of(context).colorScheme.surface,
-              leading: const Icon(Icons.settings_outlined),
-              title: const Text('Settings'),
-              trailing: const Icon(Icons.chevron_right),
+            const SizedBox(height: 12),
+            _ProfileMenuItem(
+              icon: Icons.settings_outlined,
+              iconColor: Colors.white70,
+              title: 'Settings',
               onTap: () =>
                   Navigator.of(context).pushNamed(AppRoutes.settings),
             ),
             if (isAuthenticated) ...[
-              const SizedBox(height: 14),
-              FilledButton.tonalIcon(
-                onPressed: auth.loading
-                    ? null
-                    : () => ref.read(authNotifierProvider.notifier).logout(),
-                icon: const Icon(Icons.logout),
-                label: const Text('Logout'),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.tonalIcon(
+                  onPressed: auth.loading
+                      ? null
+                      : () => ref.read(authNotifierProvider.notifier).logout(),
+                  icon: const Icon(Icons.logout),
+                  label: const Text('Logout'),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
               ),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileMenuItem extends StatelessWidget {
+  const _ProfileMenuItem({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.onTap,
+    this.subtitle,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String? subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Ink(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.08)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: iconColor, size: 22),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      color: Colors.white,
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle!,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: Colors.white.withOpacity(0.5),
+            ),
           ],
         ),
       ),

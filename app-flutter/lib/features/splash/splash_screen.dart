@@ -44,7 +44,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           height: double.infinity,
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF0E4C67), Color(0xFF0B3C53)],
+              colors: [Color(0xFF0A2835), Color(0xFF15657B)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),

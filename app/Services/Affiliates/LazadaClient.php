@@ -229,7 +229,7 @@ class LazadaClient implements ProductSearchClient
             ],
         ];
 
-        $products = $this->expandProducts($baseProducts, 100, 'LZ', 1101);
+        $products = $this->expandProducts($baseProducts, 2000, 'LZ', 1101);
 
         // Add platform and affiliate URL to all products
         $products = array_map(function (array $product) {
@@ -247,7 +247,7 @@ class LazadaClient implements ProductSearchClient
 
             // If no exact matches, return all products (simulating search)
             if (empty($products)) {
-                $products = $this->expandProducts($baseProducts, 100, 'LZ', 1101);
+                $products = $this->expandProducts($baseProducts, 2000, 'LZ', 1101);
                 return array_map(function (array $product) {
                     $product['platform'] = 'lazada';
                     $product['affiliate_url'] = $this->createAffiliateLink($product['url']);

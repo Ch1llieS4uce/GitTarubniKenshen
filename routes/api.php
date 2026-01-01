@@ -11,6 +11,7 @@ use App\Http\Controllers\ClickController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\SyncController;
+use App\Http\Controllers\AffiliateProductController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminSyncLogController;
 use App\Http\Controllers\Admin\AdminUserController;
@@ -26,8 +27,17 @@ Route::middleware('throttle:public')->get('/click/{platform}', [ClickController:
 
 Route::middleware('throttle:public')->get('/home', [HomeController::class, 'home']);
 
+// New: Affiliate products API with pagination and filtering
+Route::middleware('throttle:public')->group(function () {
+    Route::get('/affiliate-products', [AffiliateProductController::class, 'index']);
+    Route::get('/affiliate-products/stats', [AffiliateProductController::class, 'stats']);
+    Route::get('/affiliate-products/{platform}/{id}', [AffiliateProductController::class, 'show'])
+        ->whereIn('platform', ['shopee', 'lazada', 'tiktok']);
+});
+
+
 Route::middleware(['auth:sanctum', 'throttle:auth'])->group(function () {
-    Route::get('/me', function (\Illuminate\Http\Request $request) {
+    Route::get('/me', function (Request $request) {
         return $request->user();
     });
 

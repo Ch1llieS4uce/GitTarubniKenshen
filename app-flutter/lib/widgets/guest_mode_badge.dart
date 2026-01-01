@@ -19,21 +19,27 @@ class GuestModeBadge extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: compact ? 10 : 12,
+        horizontal: compact ? 12 : 14,
         vertical: compact ? 6 : 8,
       ),
       decoration: BoxDecoration(
-        color: scheme.primary.withOpacity(0.18),
-        borderRadius: BorderRadius.circular(999),
+        gradient: LinearGradient(
+          colors: [
+            scheme.primary.withOpacity(0.2),
+            scheme.primary.withOpacity(0.1),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: scheme.primary.withOpacity(0.35),
+          color: scheme.primary.withOpacity(0.4),
+          width: 1.5,
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Icons.person_outline,
+            Icons.person_outline_rounded,
             size: compact ? 14 : 16,
             color: scheme.primary,
           ),
@@ -42,8 +48,8 @@ class GuestModeBadge extends ConsumerWidget {
             'Guest Mode',
             style: TextStyle(
               fontWeight: FontWeight.w700,
-              letterSpacing: 0.2,
-              fontSize: compact ? 12 : 13,
+              letterSpacing: 0.3,
+              fontSize: compact ? 11 : 12,
               color: scheme.primary,
             ),
           ),

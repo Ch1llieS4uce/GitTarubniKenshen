@@ -10,9 +10,9 @@ import '../products/product_detail_screen.dart';
 import 'home_notifier.dart';
 
 const _homeGradient = LinearGradient(
-  colors: [Color(0xFF081029), Color(0xFF101B44), Color(0xFF1C2D78)],
-  begin: Alignment.topLeft,
-  end: Alignment.bottomRight,
+  colors: [Color(0xFF0A2835), Color(0xFF0D3D4D), Color(0xFF15657B)],
+  begin: Alignment.topCenter,
+  end: Alignment.bottomCenter,
 );
 
 class HomeGuestScreen extends ConsumerStatefulWidget {
@@ -42,47 +42,93 @@ class _HomeGuestScreenState extends ConsumerState<HomeGuestScreen> {
         child: SafeArea(
           child: RefreshIndicator(
             onRefresh: _refresh,
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-              children: [
-                Row(
-                  children: [
-                    const Expanded(
-                      child: Text(
-                        'BARYABest',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.8,
+            color: Theme.of(context).colorScheme.primary,
+            child: CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header row
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'BARYABest',
+                                    style: TextStyle(
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 0.5,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Browse deals and compare prices across platforms.',
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.85),
+                                      fontSize: 13,
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (!auth.isAuthenticated) ...[
+                              const SizedBox(width: 12),
+                              const GuestModeBadge(compact: true),
+                            ],
+                          ],
                         ),
-                      ),
+                        const SizedBox(height: 20),
+                        // Sign in CTA card
+                        const SignInToUnlockCard(),
+                        const SizedBox(height: 16),
+                        // Explore button - full width, prominent
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.icon(
+                            onPressed: () => Navigator.of(context).pushNamed(
+                              AppRoutes.exploreProducts,
+                            ),
+                            icon: const Icon(Icons.search, size: 20),
+                            label: const Text(
+                              'Explore products',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                              ),
+                            ),
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
                     ),
-                    if (!auth.isAuthenticated)
-                      const GuestModeBadge(compact: true),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Browse deals and compare prices across platforms.',
-                  style: TextStyle(color: Colors.white70, height: 1.2),
-                ),
-                const SizedBox(height: 16),
-                const SignInToUnlockCard(),
-                const SizedBox(height: 14),
-                FilledButton.icon(
-                  onPressed: () => Navigator.of(context).pushNamed(
-                    AppRoutes.productList,
-                    arguments: const {'title': 'Explore', 'query': ''},
                   ),
-                  icon: const Icon(Icons.search),
-                  label: const Text('Explore products'),
                 ),
-                const SizedBox(height: 18),
-                _HomeSections(
-                  loading: state.loading,
-                  error: state.error,
-                  sections: state.sections,
-                  onRetry: _refresh,
+                // Content section (loading, error, or products)
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+                  sliver: SliverToBoxAdapter(
+                    child: _HomeSections(
+                      loading: state.loading,
+                      error: state.error,
+                      sections: state.sections,
+                      onRetry: _refresh,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -115,29 +161,7 @@ class _HomeSections extends StatelessWidget {
       );
     }
     if (error != null) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Could not load home feed',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.error,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(error!, style: const TextStyle(color: Colors.white70)),
-            const SizedBox(height: 12),
-            FilledButton.tonalIcon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
-            ),
-          ],
-        ),
-      );
+      return _ErrorCard(message: error!, onRetry: onRetry);
     }
 
     final featuredProducts = sections
@@ -147,10 +171,7 @@ class _HomeSections extends StatelessWidget {
         .toList();
 
     if (featuredProducts.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.only(top: 18),
-        child: Text('No featured products right now.'),
-      );
+      return const _EmptyStateCard();
     }
 
     return Padding(
@@ -160,7 +181,11 @@ class _HomeSections extends StatelessWidget {
         children: [
           const Text(
             'Featured',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+            ),
           ),
           const SizedBox(height: 10),
           ...featuredProducts.map(
@@ -173,6 +198,97 @@ class _HomeSections extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Friendly error card that doesn't dominate the screen
+class _ErrorCard extends StatelessWidget {
+  const _ErrorCard({required this.message, required this.onRetry});
+
+  final String message;
+  final Future<void> Function() onRetry;
+
+  @override
+  Widget build(BuildContext context) => Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.cloud_off_rounded,
+            size: 36,
+            color: Colors.white.withOpacity(0.5),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.9),
+              fontSize: 14,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 14),
+          OutlinedButton.icon(
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh, size: 18),
+            label: const Text('Retry'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.white70,
+              side: BorderSide(color: Colors.white.withOpacity(0.3)),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            ),
+          ),
+        ],
+      ),
+    );
+}
+
+/// Empty state when no products are available
+class _EmptyStateCard extends StatelessWidget {
+  const _EmptyStateCard();
+
+  @override
+  Widget build(BuildContext context) => Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.inventory_2_outlined,
+            size: 40,
+            color: Colors.white.withOpacity(0.6),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'No featured products right now',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.9),
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Tap "Explore products" to browse all items',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.7),
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
 }
 
 class _FeaturedProductTile extends StatelessWidget {
@@ -230,7 +346,10 @@ class _FeaturedProductTile extends StatelessWidget {
                     product.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w700),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Row(
@@ -260,6 +379,7 @@ class _FeaturedProductTile extends StatelessWidget {
                         style: const TextStyle(
                           fontWeight: FontWeight.w900,
                           fontSize: 14,
+                          color: Colors.white,
                         ),
                       ),
                     ],

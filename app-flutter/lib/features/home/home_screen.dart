@@ -14,13 +14,13 @@ import '../search/search_screen.dart';
 import 'home_notifier.dart';
 
 const _heroGradient = LinearGradient(
-  colors: [Color(0xFF080C2B), Color(0xFF17205D), Color(0xFF2E4CEA)],
+  colors: [Color(0xFF0A2835), Color(0xFF0D3D4D), Color(0xFFFF6B4A)],
   begin: Alignment.topLeft,
   end: Alignment.bottomRight,
 );
 
 const _cardGradient = LinearGradient(
-  colors: [Color(0xFF1B2A73), Color(0xFF3745B2)],
+  colors: [Color(0xFF0D3D4D), Color(0xFF15657B)],
   begin: Alignment.topRight,
   end: Alignment.bottomLeft,
 );
@@ -253,7 +253,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Text(
               'Loading amazing deals...',
               style: TextStyle(
-                color: Color(0xFF1C1B4B),
+                color: Color(0xFFFF6B4A),
                 fontSize: 16,
               ),
             ),
@@ -285,7 +285,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         width: 4,
                         height: 24,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFF7A18),
+                          color: const Color(0xFFFF6B4A),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -295,7 +295,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1C1B4B),
+                          color: Color(0xFFFFFFFF),
                           letterSpacing: 0.5,
                         ),
                       ),
@@ -307,7 +307,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       icon: const Icon(Icons.arrow_forward, size: 16),
                       label: const Text('See all'),
                       style: TextButton.styleFrom(
-                        foregroundColor: const Color(0xFF3A86FF),
+                        foregroundColor: const Color(0xFFFF6B4A),
                       ),
                     ),
                 ],
@@ -386,7 +386,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 icon: const Icon(Icons.refresh),
                 label: const Text('Try Again'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF7A18),
+                  backgroundColor: const Color(0xFFFF6B4A),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
@@ -424,14 +424,14 @@ class _TrendingChip extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFFFF7A18), Color(0xFFFF9A3C)],
+                colors: [Color(0xFFFF6B4A), Color(0xFFF15A29)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(30),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFFF7A18).withOpacity(0.3),
+                  color: const Color(0xFFFF6B4A).withOpacity(0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -498,7 +498,7 @@ class _ProductCard extends StatelessWidget {
               offset: const Offset(0, 8),
               blurRadius: 24,
               spreadRadius: -4,
-              color: const Color(0xFF1B2A73).withOpacity(0.4),
+              color: const Color(0xFF0D3D4D).withOpacity(0.4),
             ),
             BoxShadow(
               offset: const Offset(0, 16),
@@ -535,7 +535,7 @@ class _ProductCard extends StatelessWidget {
                                       return child;
                                     }
                                     return Container(
-                                      color: const Color(0xFF2A3A80),
+                                      color: const Color(0xFF0D3D4D),
                                       child: const Center(
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
@@ -547,7 +547,7 @@ class _ProductCard extends StatelessWidget {
                                   errorBuilder: (context, error, stackTrace) =>
                                       Container(
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF2A3A80),
+                                      color: const Color(0xFF0D3D4D),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: const Center(
@@ -561,7 +561,7 @@ class _ProductCard extends StatelessWidget {
                                 )
                               : Container(
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF2A3A80),
+                                    color: const Color(0xFF0D3D4D),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: const Icon(
@@ -640,7 +640,7 @@ class _ProductCard extends StatelessWidget {
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
-                                    color: Color(0xFF1B2A73),
+                                    color: Color(0xFF0D3D4D),
                                   ),
                                 ),
                               ),

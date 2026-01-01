@@ -116,8 +116,7 @@ class _HomeAuthScreenState extends ConsumerState<HomeAuthScreen> {
                 const SizedBox(height: 14),
                 FilledButton.icon(
                   onPressed: () => Navigator.of(context).pushNamed(
-                    AppRoutes.productList,
-                    arguments: const {'title': 'Explore', 'query': ''},
+                    AppRoutes.exploreProducts,
                   ),
                   icon: const Icon(Icons.search),
                   label: const Text('Explore products'),

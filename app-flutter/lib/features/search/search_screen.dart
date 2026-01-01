@@ -10,7 +10,7 @@ import '../../widgets/ai_recommendation_badge.dart';
 import 'search_notifier.dart';
 
 const _searchGradient = LinearGradient(
-  colors: [Color(0xFF0A0F33), Color(0xFF1D255F), Color(0xFF3C57B6)],
+  colors: [Color(0xFF0A2835), Color(0xFF0D3D4D), Color(0xFF15657B)],
   begin: Alignment.topLeft,
   end: Alignment.bottomRight,
 );
@@ -299,7 +299,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 icon: const Icon(Icons.refresh),
                 label: const Text('Retry Search'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3A86FF),
+                  backgroundColor: const Color(0xFFFF6B4A),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
@@ -449,7 +449,7 @@ class _ResultCard extends StatelessWidget {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF1C1B4B),
+                                color: const Color(0xFF0D3D4D),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
