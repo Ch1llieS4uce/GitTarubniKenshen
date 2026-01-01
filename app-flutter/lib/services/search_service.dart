@@ -76,7 +76,7 @@ class SearchService {
         discount: 50,
         rating: 4.8,
         reviewCount: 3241,
-        image: 'https://picsum.photos/seed/${query}1/200/200',
+        image: 'https://via.placeholder.com/200x200/1a1a2e/FFFFFF.png?text=Premium',
         ai: ai(799, 1),
       ),
       AffiliateProduct(
@@ -90,7 +90,7 @@ class SearchService {
         discount: 40,
         rating: 4.6,
         reviewCount: 1823,
-        image: 'https://picsum.photos/seed/${query}2/200/200',
+        image: 'https://via.placeholder.com/200x200/ff6b00/FFFFFF.png?text=Best+Seller',
         ai: ai(599, 2),
       ),
       AffiliateProduct(
@@ -104,7 +104,7 @@ class SearchService {
         discount: 50,
         rating: 4.5,
         reviewCount: 982,
-        image: 'https://picsum.photos/seed/${query}3/200/200',
+        image: 'https://via.placeholder.com/200x200/2e8b57/FFFFFF.png?text=Value+Pack',
         ai: ai(449, 3),
       ),
       AffiliateProduct(
@@ -118,7 +118,7 @@ class SearchService {
         discount: 48,
         rating: 4.9,
         reviewCount: 5621,
-        image: 'https://picsum.photos/seed/${query}4/200/200',
+        image: 'https://via.placeholder.com/200x200/8b4513/FFFFFF.png?text=Limited',
         ai: ai(1299, 4),
       ),
       AffiliateProduct(
@@ -132,7 +132,7 @@ class SearchService {
         discount: 50,
         rating: 4.3,
         reviewCount: 742,
-        image: 'https://picsum.photos/seed/${query}5/200/200',
+        image: 'https://via.placeholder.com/200x200/0f4c75/FFFFFF.png?text=Starter',
         ai: ai(299, 5),
       ),
       AffiliateProduct(
@@ -146,7 +146,7 @@ class SearchService {
         discount: 42,
         rating: 4.7,
         reviewCount: 2134,
-        image: 'https://picsum.photos/seed/${query}6/200/200',
+        image: 'https://via.placeholder.com/200x200/333333/FFFFFF.png?text=Pro',
         ai: ai(1899, 6),
       ),
     ];

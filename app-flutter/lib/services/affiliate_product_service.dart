@@ -189,15 +189,15 @@ class AffiliateProductService {
             platform: p,
             id: id,
             title: _generateProductTitle(p, i, query),
-            url: 'https://example.com/$p/product/$id',
-            affiliateUrl: 'https://example.com/$p/aff/$id',
+            url: _generateProductUrl(p, id),
+            affiliateUrl: _generateProductUrl(p, id),
             price: basePrice.toDouble(),
             originalPrice: originalPrice,
             discount: discount.toDouble(),
             rating: 3.5 + (i % 15) / 10,
             reviewCount: 100 + (i * 37 % 10000),
             sellerRating: 4.0 + (i % 10) / 10,
-            image: 'https://picsum.photos/seed/$id/300/300',
+            image: _generateProductImage(p, i, query),
             ai: AIRecommendation(
               recommendedPrice: basePrice * 1.08,
               confidence: 0.7 + (i % 25) / 100,
@@ -281,6 +281,53 @@ class AffiliateProductService {
     return '$adjective $category $type #${index + 1}';
   }
 
+  /// Generate product-appropriate placeholder image URL
+  String _generateProductImage(String platform, int index, String? query) {
+    final categories = [
+      'Electronics',
+      'Fashion',
+      'Home & Living',
+      'Beauty',
+      'Sports',
+      'Toys',
+      'Automotive',
+      'Books',
+    ];
+    final category = query ?? categories[index % categories.length];
+    
+    // Category-based colors for visual distinction
+    final colorMap = {
+      'Electronics': '1a1a2e',
+      'Fashion': 'f8b500',
+      'Home & Living': 'f5f5dc',
+      'Beauty': 'ffb6c1',
+      'Sports': '2e8b57',
+      'Toys': 'ff6b6b',
+      'Automotive': '4a4a4a',
+      'Books': '8b4513',
+    };
+    
+    final bgColor = colorMap[category] ?? '0f4c75';
+    
+    // via.placeholder.com returns PNG format which Android handles well
+    return 'https://via.placeholder.com/300x300/$bgColor/FFFFFF.png?text=${Uri.encodeComponent(category)}';
+  }
+
+  /// Generate platform-specific product URL
+  String _generateProductUrl(String platform, String id) {
+    switch (platform.toLowerCase()) {
+      case 'lazada':
+        return 'https://www.lazada.com.ph/products/product-$id.html';
+      case 'shopee':
+        return 'https://shopee.ph/product-$id';
+      case 'tiktok':
+      case 'tiktokshop':
+        return 'https://shop.tiktok.com/view/product/$id';
+      default:
+        return 'https://www.lazada.com.ph/products/product-$id.html';
+    }
+  }
+
   AffiliateProduct? _getMockSingleProduct(String platform, String id) {
     final index = int.tryParse(id.split('-').last) ?? 1;
     final basePrice = 100 + (index * 17 % 5000);
@@ -291,15 +338,15 @@ class AffiliateProductService {
       platform: platform,
       id: id,
       title: _generateProductTitle(platform, index, null),
-      url: 'https://example.com/$platform/product/$id',
-      affiliateUrl: 'https://example.com/$platform/aff/$id',
+      url: _generateProductUrl(platform, id),
+      affiliateUrl: _generateProductUrl(platform, id),
       price: basePrice.toDouble(),
       originalPrice: originalPrice,
       discount: discount.toDouble(),
       rating: 3.5 + (index % 15) / 10,
       reviewCount: 100 + (index * 37 % 10000),
       sellerRating: 4.0 + (index % 10) / 10,
-      image: 'https://picsum.photos/seed/$id/300/300',
+      image: _generateProductImage(platform, index, null),
       ai: AIRecommendation(
         recommendedPrice: basePrice * 1.08,
         confidence: 0.7 + (index % 25) / 100,

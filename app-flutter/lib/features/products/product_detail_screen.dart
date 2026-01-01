@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../config/app_config.dart';
+import '../../design_system.dart';
 import '../../models/affiliate_product.dart';
 import '../../services/click_tracker.dart';
 import '../../state/auth_notifier.dart';
@@ -48,7 +49,6 @@ class ProductDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final scheme = Theme.of(context).colorScheme;
     final auth = ref.watch(authNotifierProvider);
     final saved = ref.watch(savedNotifierProvider);
     final isSaved = saved.any(
@@ -58,9 +58,13 @@ class ProductDetailScreen extends ConsumerWidget {
     final confidence = product.ai?.confidence;
     final confidencePct = confidence == null ? null : (confidence * 100);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Product'),
+    return GlassScaffold(
+      appBar: GlassAppBar(
+        title: 'Product',
+        leading: GlassIconButton(
+          icon: Icons.arrow_back,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 12),
@@ -80,51 +84,56 @@ class ProductDetailScreen extends ConsumerWidget {
                   subtitle: 'Sign in to save unlimited items and enable alerts.',
                 ),
               ),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(18),
-              child: SizedBox(
-                height: 200,
-                child: product.image == null
-                    ? Container(
-                        color: scheme.surfaceContainerHighest,
-                        child: const Icon(
-                          Icons.shopping_bag_outlined,
-                          size: 48,
+            // Product Image
+            GlassCard(
+              padding: EdgeInsets.zero,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+                child: SizedBox(
+                  height: 200,
+                  width: double.infinity,
+                  child: product.image == null
+                      ? Container(
+                          color: AppTheme.glassSurface,
+                          child: const Icon(
+                            Icons.shopping_bag_outlined,
+                            size: 48,
+                            color: AppTheme.textSecondary,
+                          ),
+                        )
+                      : Image.network(
+                          product.image!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: AppTheme.glassSurface,
+                            child: const Icon(Icons.image_not_supported,
+                                size: 40, color: AppTheme.textSecondary),
+                          ),
                         ),
-                      )
-                    : Image.network(
-                        product.image!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          color: scheme.surfaceContainerHighest,
-                          child:
-                              const Icon(Icons.image_not_supported, size: 40),
-                        ),
-                      ),
+                ),
               ),
             ),
             const SizedBox(height: 14),
             Text(
               product.title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+              style: AppTheme.headlineSmall,
             ),
             const SizedBox(height: 10),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                _Pill(
+                GlassChip(
                   label: product.platform.toUpperCase(),
                   icon: Icons.store_mall_directory_outlined,
                 ),
-                _Pill(
+                GlassChip(
                   label: _priceText(),
                   icon: Icons.sell_outlined,
                 ),
                 if (product.discount != null)
-                  _Pill(
-                    label: '-${product.discount!.toStringAsFixed(0)}%',
-                    icon: Icons.local_offer_outlined,
+                  GlassDiscountBadge(
+                    discount: product.discount!,
                   ),
               ],
             ),
@@ -132,15 +141,15 @@ class ProductDetailScreen extends ConsumerWidget {
             Row(
               children: [
                 Expanded(
-                  child: FilledButton.icon(
+                  child: AccentButton(
                     onPressed: () => _openAffiliate(context),
-                    icon: const Icon(Icons.open_in_new),
-                    label: const Text('Open product'),
+                    icon: Icons.open_in_new,
+                    label: 'Open product',
                   ),
                 ),
                 const SizedBox(width: 12),
-                IconButton.filledTonal(
-                  tooltip: isSaved ? 'Remove from saved' : 'Save',
+                GlassIconButton(
+                  icon: isSaved ? Icons.bookmark : Icons.bookmark_border,
                   onPressed: () {
                     final result =
                         ref.read(savedNotifierProvider.notifier).toggle(product);
@@ -161,65 +170,58 @@ class ProductDetailScreen extends ConsumerWidget {
                       ),
                     );
                   },
-                  icon: Icon(isSaved ? Icons.bookmark : Icons.bookmark_border),
                 ),
               ],
             ),
             if (product.ai?.recommendedPrice != null) ...[
               const SizedBox(height: 18),
-              Text(
-                'AI suggestion',
-                style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  color: scheme.onSurface.withOpacity(0.9),
+              GlassCard(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            gradient: AppTheme.accentGradient,
+                            borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                          ),
+                          child: const Icon(Icons.auto_awesome, size: 16, color: Colors.white),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'AI Suggestion',
+                          style: AppTheme.titleMedium.copyWith(
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Recommended: ₱${product.ai!.recommendedPrice!.toStringAsFixed(2)}'
+                      '${confidencePct == null ? '' : ' • ${confidencePct.toStringAsFixed(0)}% confidence'}',
+                      style: AppTheme.bodyMedium.copyWith(color: AppTheme.textPrimary),
+                    ),
+                    if (confidencePct != null) ...[
+                      const SizedBox(height: 8),
+                      GlassConfidenceIndicator(confidence: confidence!),
+                    ],
+                    if ((product.ai?.reason ?? '').trim().isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        product.ai!.reason!,
+                        style: AppTheme.labelSmall,
+                      ),
+                    ],
+                  ],
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Recommended: ₱${product.ai!.recommendedPrice!.toStringAsFixed(2)}'
-                '${confidencePct == null ? '' : ' • confidence ${confidencePct.toStringAsFixed(0)}%'}',
-                style: TextStyle(color: scheme.onSurfaceVariant),
-              ),
-              if ((product.ai?.reason ?? '').trim().isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  product.ai!.reason!,
-                  style: TextStyle(color: scheme.onSurfaceVariant),
-                ),
-              ],
             ],
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _Pill extends StatelessWidget {
-  const _Pill({required this.label, required this.icon});
-
-  final String label;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: scheme.onSurfaceVariant),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
-        ],
       ),
     );
   }

@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+
+import '../../design_system.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -17,49 +19,62 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Forgot password')),
+  Widget build(BuildContext context) => GlassScaffold(
+        appBar: GlassAppBar(
+          title: 'Forgot password',
+          leading: GlassIconButton(
+            icon: Icons.arrow_back,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
         body: SafeArea(
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 'Reset your password',
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                style: AppTheme.headlineMedium,
               ),
               const SizedBox(height: 8),
               Text(
-                'Enter your email and we’ll send reset instructions.',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.75),
-                ),
+                'Enter your email and we will send reset instructions.',
+                style: AppTheme.bodyMedium,
               ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: _email,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Password reset is not enabled on this demo backend yet.',
+              const SizedBox(height: 24),
+              GlassCard(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    GlassTextField(
+                      controller: _email,
+                      label: 'Email Address',
+                      hint: 'your@email.com',
+                      prefixIcon: Icons.email_outlined,
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: AccentButton(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Password reset is not enabled on this demo backend yet.',
+                              ),
+                            ),
+                          );
+                        },
+                        label: 'Send reset link',
+                        icon: Icons.send,
                       ),
                     ),
-                  );
-                },
-                child: const Text('Send reset link'),
+                  ],
+                ),
               ),
             ],
           ),
         ),
       );
 }
-

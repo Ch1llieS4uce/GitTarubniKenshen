@@ -3,17 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../config/app_config.dart';
+import '../../design_system.dart';
 import '../../models/affiliate_product.dart';
 import '../../services/click_tracker.dart';
 import '../../widgets/affiliate_product_detail_sheet.dart';
 import '../../widgets/ai_recommendation_badge.dart';
 import 'search_notifier.dart';
-
-const _searchGradient = LinearGradient(
-  colors: [Color(0xFF0A2835), Color(0xFF0D3D4D), Color(0xFF15657B)],
-  begin: Alignment.topLeft,
-  end: Alignment.bottomRight,
-);
 
 const _platformOptions = ['shopee', 'lazada', 'tiktok'];
 const _trendingQueries = [
@@ -77,51 +72,36 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(
-        decoration: const BoxDecoration(gradient: _searchGradient),
+        decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient),
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'Search deals',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                      style: AppTheme.headlineLarge,
                     ),
-                    Icon(
-                      Icons.bar_chart,
-                      color: Colors.white70,
+                    GlassIconButton(
+                      icon: Icons.bar_chart,
+                      onPressed: () {},
                     ),
                   ],
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Material(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(24),
-                  child: TextField(
-                    controller: _controller,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: 'Search for shopee, lazada or tiktok',
-                      hintStyle: const TextStyle(color: Colors.white70),
-                      border: InputBorder.none,
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 20),
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.search, color: Colors.white),
-                        onPressed: () => _triggerSearch(_controller.text),
-                      ),
-                    ),
-                    onSubmitted: _triggerSearch,
+                child: GlassSearchBar(
+                  controller: _controller,
+                  hint: 'Search for shopee, lazada or tiktok',
+                  onSubmitted: _triggerSearch,
+                  trailing: GlassIconButton(
+                    icon: Icons.search,
+                    onPressed: () => _triggerSearch(_controller.text),
                   ),
                 ),
               ),
@@ -135,25 +115,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     final label =
                         platform[0].toUpperCase() + platform.substring(1);
                     final selected = _platform == platform;
-                    return GestureDetector(
+                    return GlassChip(
+                      label: label,
+                      selected: selected,
                       onTap: () => setState(() => _platform = platform),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: selected
-                              ? Colors.white
-                              : Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          label,
-                          style: TextStyle(
-                            color: selected ? Colors.black : Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
                     );
                   }).toList(),
                 ),
@@ -166,26 +131,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   runSpacing: 8,
                   children: _trendingQueries
                       .map(
-                        (query) => GestureDetector(
+                        (query) => GlassChip(
+                          label: query,
                           onTap: () {
                             _controller.text = query;
                             _triggerSearch(query);
                           },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              query,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
                         ),
                       )
                       .toList(),
@@ -202,33 +153,27 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
   }
 
-  Widget _buildResults(SearchState state) => Container(
+  Widget _buildResults(SearchState state) => GlassCard(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(32),
-        ),
+        borderRadius: 32,
+        padding: EdgeInsets.zero,
         child: Column(
           children: [
-            if (state.loading) const LinearProgressIndicator(),
+            if (state.loading) 
+              const LinearProgressIndicator(
+                backgroundColor: AppTheme.glassBorder,
+                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.accentOrange),
+              ),
             Expanded(
               child: state.loading && state.items.isEmpty
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const GlassLoadingOverlay(isLoading: true, child: SizedBox.expand())
                   : state.error != null && state.items.isEmpty
                       ? _buildError()
                       : state.items.isEmpty
-                          ? const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(16),
-                                child: Text(
-                                  'Search for anything and watch BaryaBest find the best drop.',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: Colors.black54,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
+                          ? const GlassEmptyState(
+                              icon: Icons.search,
+                              title: 'Start searching',
+                              subtitle: 'Search for anything and watch BaryaBest find the best drop.',
                             )
                           : NotificationListener<ScrollNotification>(
                               onNotification: (scroll) {
@@ -256,63 +201,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         ),
       );
 
-  Center _buildError() => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(
-                  Icons.search_off,
-                  size: 48,
-                  color: Colors.red.shade400,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Search Unavailable',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Unable to reach the API.\nPlease check the backend and try again.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.black54),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () =>
-                    ref.read(searchNotifierProvider.notifier).search(
-                          _platform,
-                          _controller.text,
-                        ),
-                icon: const Icon(Icons.refresh),
-                label: const Text('Retry Search'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF6B4A),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+  Widget _buildError() => GlassErrorState(
+        message: 'Unable to reach the API.\nPlease check the backend and try again.',
+        onRetry: () => ref.read(searchNotifierProvider.notifier).search(
+              _platform,
+              _controller.text,
+            ),
       );
 }
 

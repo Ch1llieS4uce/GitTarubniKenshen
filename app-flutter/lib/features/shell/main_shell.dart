@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../design_system.dart';
 import '../../navigation/app_routes.dart';
 import '../../state/auth_notifier.dart';
 import '../categories/categories_screen.dart';
@@ -9,6 +10,7 @@ import '../home/home_auth_screen.dart';
 import '../home/home_guest_screen.dart';
 import '../inventory/inventory_screen.dart';
 import '../notifications/notifications_screen.dart';
+import '../products/explore_products_screen.dart';
 import '../products/product_detail_screen.dart';
 import '../products/product_list_screen.dart';
 import '../profile/platform_accounts_screen.dart';
@@ -143,6 +145,11 @@ class _MainShellState extends ConsumerState<MainShell> {
           settings: settings,
           builder: (_) => const NotificationsScreen(),
         );
+      case AppRoutes.exploreProducts:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const ExploreProductsScreen(),
+        );
       case AppRoutes.productList:
         return MaterialPageRoute(
           settings: settings,
@@ -217,7 +224,8 @@ class _MainShellState extends ConsumerState<MainShell> {
           }
           _handleBackNavigation();
         },
-        child: Scaffold(
+        child: GlassScaffold(
+          extendBody: true,
           body: IndexedStack(
             index: _index,
             children: MainTab.values
@@ -230,33 +238,33 @@ class _MainShellState extends ConsumerState<MainShell> {
                 )
                 .toList(),
           ),
-          bottomNavigationBar: NavigationBar(
-            selectedIndex: _index,
-            onDestinationSelected: _onTabSelected,
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.home_outlined),
-                selectedIcon: Icon(Icons.home),
+          bottomNavigationBar: GlassBottomNavBar(
+            currentIndex: _index,
+            onTap: _onTabSelected,
+            items: const [
+              GlassNavItem(
+                icon: Icons.home_outlined,
+                activeIcon: Icons.home,
                 label: 'Home',
               ),
-              NavigationDestination(
-                icon: Icon(Icons.compare_arrows_outlined),
-                selectedIcon: Icon(Icons.compare_arrows),
+              GlassNavItem(
+                icon: Icons.compare_arrows_outlined,
+                activeIcon: Icons.compare_arrows,
                 label: 'Compare',
               ),
-              NavigationDestination(
-                icon: Icon(Icons.category_outlined),
-                selectedIcon: Icon(Icons.category),
+              GlassNavItem(
+                icon: Icons.category_outlined,
+                activeIcon: Icons.category,
                 label: 'Categories',
               ),
-              NavigationDestination(
-                icon: Icon(Icons.bookmark_border),
-                selectedIcon: Icon(Icons.bookmark),
+              GlassNavItem(
+                icon: Icons.bookmark_border,
+                activeIcon: Icons.bookmark,
                 label: 'Saved',
               ),
-              NavigationDestination(
-                icon: Icon(Icons.person_outline),
-                selectedIcon: Icon(Icons.person),
+              GlassNavItem(
+                icon: Icons.person_outline,
+                activeIcon: Icons.person,
                 label: 'Profile',
               ),
             ],

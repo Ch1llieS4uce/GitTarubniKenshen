@@ -34,8 +34,10 @@ linter:
     - unrelated_type_equality_checks
     # Style Rules
     - always_declare_return_types
-    - always_put_control_body_on_new_line
-    - always_put_required_named_parameters_first
+    # Disabled: causes issues with inline conditionals
+    # - always_put_control_body_on_new_line
+    # Disabled: too restrictive for widget constructors
+    # - always_put_required_named_parameters_first
     - annotate_overrides
     - avoid_bool_literals_in_conditional_expressions
     - avoid_catching_errors
@@ -44,7 +46,8 @@ linter:
     - avoid_function_literals_in_foreach_calls
     - avoid_init_to_null
     - avoid_null_checks_in_equality_operators
-    - avoid_positional_boolean_parameters
+    # Disabled: too restrictive for simple toggle parameters
+    # - avoid_positional_boolean_parameters
     - avoid_private_typedef_functions
     - avoid_returning_null
     - avoid_returning_this
@@ -53,7 +56,8 @@ linter:
     - avoid_types_on_closure_parameters
     - camel_case_extensions
     - camel_case_types
-    - cascade_invocations
+    # Disabled: overly pedantic for multi-statement code blocks
+    # - cascade_invocations
     - cast_nullable_to_non_nullable
     - conditional_uri_does_not_exist
     - constant_identifier_names
@@ -69,7 +73,8 @@ linter:
     - library_private_types_in_public_api
     - no_leading_underscores_for_library_prefixes
     - null_closures
-    - omit_local_variable_types
+    # Disabled: type annotations can improve code readability
+    # - omit_local_variable_types
     - one_member_abstracts
     - only_throw_errors
     - overridden_fields
@@ -88,7 +93,8 @@ linter:
     - prefer_constructors_over_static_methods
     - prefer_contains
     - prefer_equal_for_default_values
-    - prefer_expression_function_bodies
+    # Disabled: too restrictive, blocks often clearer than expressions
+    # - prefer_expression_function_bodies
     - prefer_final_fields
     - prefer_final_in_for_each
     - prefer_final_locals
@@ -100,7 +106,8 @@ linter:
     - prefer_if_null_operators
     - prefer_initializing_formals
     - prefer_inlined_adds
-    - prefer_int_literals
+    # Disabled: 1.0 is often clearer than 1 for double values
+    # - prefer_int_literals
     - prefer_interpolation_to_compose_strings
     - prefer_is_empty
     - prefer_is_not_empty
@@ -115,7 +122,8 @@ linter:
     - sized_box_for_whitespace
     - slash_for_doc_comments
     - sort_child_properties_last
-    - sort_constructors_first
+    # Disabled: causes issues with factory constructors order
+    # - sort_constructors_first
     - sort_pub_dependencies
     - sort_unnamed_constructors_first
     - tighten_type_of_initializing_formals
@@ -130,7 +138,8 @@ linter:
     - unnecessary_lambdas
     - unnecessary_new
     - unnecessary_null_aware_assignments
-    - unnecessary_null_checks
+    # Disabled: sometimes null checks are needed for clarity
+    # - unnecessary_null_checks
     - unnecessary_null_in_if_null_operators
     - unnecessary_nullable_for_final_variable_declarations
     - unnecessary_overrides

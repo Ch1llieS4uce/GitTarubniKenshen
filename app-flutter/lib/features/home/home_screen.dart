@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../config/app_config.dart';
+import '../../design_system.dart';
 import '../../models/affiliate_product.dart';
 import '../../services/click_tracker.dart';
 import '../../state/auth_notifier.dart';
@@ -10,14 +11,9 @@ import '../../widgets/affiliate_product_detail_sheet.dart';
 import '../../widgets/ai_recommendation_badge.dart';
 import '../auth/login_screen.dart';
 import '../auth/register_screen.dart';
+import '../products/widgets/lowest_price_section.dart';
 import '../search/search_screen.dart';
 import 'home_notifier.dart';
-
-const _heroGradient = LinearGradient(
-  colors: [Color(0xFF0A2835), Color(0xFF0D3D4D), Color(0xFFFF6B4A)],
-  begin: Alignment.topLeft,
-  end: Alignment.bottomRight,
-);
 
 const _cardGradient = LinearGradient(
   colors: [Color(0xFF0D3D4D), Color(0xFF15657B)],
@@ -73,7 +69,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(
-        decoration: const BoxDecoration(gradient: _heroGradient),
+        decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient),
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,43 +79,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'BaryaBest',
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.w700,
+                            style: AppTheme.headlineLarge.copyWith(
                               letterSpacing: 1.1,
                             ),
                           ),
-                          SizedBox(height: 6),
+                          const SizedBox(height: 6),
                           Text(
                             'Curated deals, bold colors, real insights',
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.white70,
-                            ),
+                            style: AppTheme.bodySmall,
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(width: 12),
                     if (auth.isAuthenticated)
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white24,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Icon(
-                          Icons.notifications,
-                          color: Colors.white,
-                        ),
+                      GlassIconButton(
+                        icon: Icons.notifications,
+                        onPressed: () {},
                       )
                     else
                       PopupMenuButton<_AuthEntry>(
@@ -135,21 +119,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             child: Text('Register'),
                           ),
                         ],
-                        child: Container(
+                        child: GlassContainer(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 14,
                             vertical: 10,
                           ),
-                          decoration: BoxDecoration(
-                            color: Colors.white24,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Text(
+                          borderRadius: AppTheme.radiusLarge,
+                          child: Text(
                             'Login / Register',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: AppTheme.labelLarge,
                           ),
                         ),
                       ),
@@ -158,30 +136,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: InkWell(
+                child: GlassSearchBar(
+                  hintText: 'Search products, deals or platforms',
                   onTap: () => _openSearch(''),
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.search, color: Colors.white70),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Search products, deals or platforms',
-                            style: TextStyle(color: Colors.white70),
-                          ),
-                        ),
-                        Icon(Icons.arrow_forward_ios, size: 16)
-                      ],
-                    ),
-                  ),
+                  readOnly: true,
                 ),
               ),
               const SizedBox(height: 14),
@@ -192,24 +150,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   runSpacing: 10,
                   children: _trendingTopics
                       .map(
-                        (topic) => Material(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(20),
-                          child: InkWell(
-                            onTap: () => _openSearch(topic),
-                            borderRadius: BorderRadius.circular(20),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
-                              child: Text(
-                                topic,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ),
+                        (topic) => GlassChip(
+                          label: topic,
+                          onTap: () => _openSearch(topic),
                         ),
                       )
                       .toList(),
@@ -217,20 +160,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               const SizedBox(height: 20),
               Expanded(
-                child: Container(
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(36),
-                      topRight: Radius.circular(36),
-                    ),
+                child: GlassCard(
+                  margin: EdgeInsets.zero,
+                  borderRadius: AppTheme.radiusXLarge,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 24,
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 24,
-                    ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXLarge),
                     child: _buildContent(state),
                   ),
                 ),
@@ -244,31 +182,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildContent(HomeState state) {
     if (state.loading && state.sections.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text(
-              'Loading amazing deals...',
-              style: TextStyle(
-                color: Color(0xFFFF6B4A),
-                fontSize: 16,
-              ),
-            ),
-          ],
-        ),
-      );
+      return const GlassLoadingOverlay(message: 'Loading amazing deals...');
     }
     if (state.error != null && state.sections.isEmpty) {
       return _buildError(state.error!);
     }
     return ListView.builder(
       physics: const BouncingScrollPhysics(),
-      itemCount: state.sections.length,
+      itemCount: state.sections.length + 1, // +1 for AI Lowest Price section
       itemBuilder: (context, index) {
-        final section = state.sections[index];
+        // First item: AI Lowest Price Recommendation section
+        if (index == 0) {
+          return const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              LowestPriceSection(),
+              SizedBox(height: 24),
+            ],
+          );
+        }
+        
+        final section = state.sections[index - 1]; // Adjust index
         final isTrending = section.title.toLowerCase().contains('trending');
         
         return Column(
@@ -285,19 +219,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         width: 4,
                         height: 24,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFF6B4A),
+                          color: AppTheme.accentOrange,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Text(
                         section.title,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFFFFFFF),
-                          letterSpacing: 0.5,
-                        ),
+                        style: AppTheme.headlineSmall,
                       ),
                     ],
                   ),
@@ -307,7 +236,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       icon: const Icon(Icons.arrow_forward, size: 16),
                       label: const Text('See all'),
                       style: TextButton.styleFrom(
-                        foregroundColor: const Color(0xFFFF6B4A),
+                        foregroundColor: AppTheme.accentOrange,
                       ),
                     ),
                 ],
@@ -347,59 +276,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildError(String error) => Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(
-                  Icons.error_outline,
-                  size: 48,
-                  color: Colors.red.shade400,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Oops! Something went wrong',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade800,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                error,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey.shade600),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () => ref.read(homeNotifierProvider.notifier).load(),
-                icon: const Icon(Icons.refresh),
-                label: const Text('Try Again'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF6B4A),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+  Widget _buildError(String error) => GlassErrorState(
+        title: 'Oops! Something went wrong',
+        message: error,
+        onRetry: () => ref.read(homeNotifierProvider.notifier).load(),
       );
 }
 
@@ -423,19 +303,9 @@ class _TrendingChip extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFF6B4A), Color(0xFFF15A29)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              gradient: AppTheme.accentGradient,
               borderRadius: BorderRadius.circular(30),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFFF6B4A).withOpacity(0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              boxShadow: AppTheme.accentGlow,
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -448,11 +318,7 @@ class _TrendingChip extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   query,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                  ),
+                  style: AppTheme.labelLarge,
                 ),
                 if (count != null) ...[
                   const SizedBox(width: 8),
@@ -492,27 +358,18 @@ class _ProductCard extends StatelessWidget {
         width: 240,
         decoration: BoxDecoration(
           gradient: _cardGradient,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              offset: const Offset(0, 8),
-              blurRadius: 24,
-              spreadRadius: -4,
-              color: const Color(0xFF0D3D4D).withOpacity(0.4),
-            ),
-            BoxShadow(
-              offset: const Offset(0, 16),
-              blurRadius: 48,
-              spreadRadius: -8,
-              color: Colors.black.withOpacity(0.2),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(AppTheme.radiusXLarge),
+          boxShadow: [AppTheme.softShadow, AppTheme.deepShadow],
+          border: Border.all(
+            color: AppTheme.glassBorder,
+            width: 1,
+          ),
         ),
         child: Material(
           color: Colors.transparent,
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXLarge),
           child: InkWell(
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(AppTheme.radiusXLarge),
             onTap: () => _openAffiliate(context, item),
             onLongPress: () => _showDetails(context),
             child: Padding(
@@ -523,7 +380,7 @@ class _ProductCard extends StatelessWidget {
                   Stack(
                     children: [
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
                         child: AspectRatio(
                           aspectRatio: 1,
                           child: item.image != null
@@ -535,11 +392,11 @@ class _ProductCard extends StatelessWidget {
                                       return child;
                                     }
                                     return Container(
-                                      color: const Color(0xFF0D3D4D),
+                                      color: AppTheme.glassSurface,
                                       child: const Center(
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
-                                          color: Colors.white,
+                                          color: AppTheme.accentOrange,
                                         ),
                                       ),
                                     );
@@ -547,27 +404,27 @@ class _ProductCard extends StatelessWidget {
                                   errorBuilder: (context, error, stackTrace) =>
                                       Container(
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF0D3D4D),
-                                      borderRadius: BorderRadius.circular(20),
+                                      color: AppTheme.glassSurface,
+                                      borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
                                     ),
                                     child: const Center(
                                       child: Icon(
                                         Icons.image_not_supported,
                                         size: 48,
-                                        color: Colors.white38,
+                                        color: AppTheme.textTertiary,
                                       ),
                                     ),
                                   ),
                                 )
                               : Container(
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF0D3D4D),
-                                    borderRadius: BorderRadius.circular(20),
+                                    color: AppTheme.glassSurface,
+                                    borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
                                   ),
                                   child: const Icon(
                                     Icons.shopping_bag_outlined,
                                     size: 56,
-                                    color: Colors.white38,
+                                    color: AppTheme.textTertiary,
                                   ),
                                 ),
                         ),
@@ -576,32 +433,8 @@ class _ProductCard extends StatelessWidget {
                         Positioned(
                           top: 8,
                           right: 8,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFFFF1744), Color(0xFFD50000)],
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFFFF1744).withOpacity(0.5),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Text(
-                              '-${item.discount!.toStringAsFixed(0)}%',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
+                          child: GlassDiscountBadge(
+                            discount: item.discount!,
                           ),
                         ),
                     ],
@@ -615,10 +448,7 @@ class _ProductCard extends StatelessWidget {
                           item.title,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
-                            color: Colors.white,
+                          style: AppTheme.titleSmall.copyWith(
                             height: 1.3,
                           ),
                         ),
@@ -632,31 +462,22 @@ class _ProductCard extends StatelessWidget {
                                   vertical: 8,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(14),
+                                  color: AppTheme.accentOrange,
+                                  borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                                 ),
                                 child: Text(
                                   '₱${item.price?.toStringAsFixed(2) ?? '—'}',
-                                  style: const TextStyle(
+                                  style: AppTheme.titleSmall.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: Color(0xFF0D3D4D),
                                   ),
                                 ),
                               ),
                             ),
                             const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.25),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.shopping_cart_checkout,
-                                color: Colors.white,
-                                size: 20,
-                              ),
+                            GlassIconButton(
+                              icon: Icons.shopping_cart_checkout,
+                              onPressed: () => _openAffiliate(context, item),
+                              size: 36,
                             ),
                           ],
                         ),
@@ -733,7 +554,7 @@ class _PlatformFlag extends StatelessWidget {
       case 'shopee':
         return const Color(0xFFFF5722);
       default:
-        return const Color(0xFF52E3FF);
+        return AppTheme.accentOrange;
     }
   }
 
@@ -755,7 +576,7 @@ class _PlatformFlag extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: _background.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
           border: Border.all(
             color: _background.withOpacity(0.4),
             width: 1.5,
@@ -772,9 +593,7 @@ class _PlatformFlag extends StatelessWidget {
             const SizedBox(width: 6),
             Text(
               platform.toUpperCase(),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
+              style: AppTheme.labelSmall.copyWith(
                 fontWeight: FontWeight.bold,
                 letterSpacing: 0.5,
               ),

@@ -12,6 +12,8 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\AffiliateProductController;
+use App\Http\Controllers\LivePricingController;
+use App\Http\Controllers\LowestPriceController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminSyncLogController;
 use App\Http\Controllers\Admin\AdminUserController;
@@ -33,6 +35,28 @@ Route::middleware('throttle:public')->group(function () {
     Route::get('/affiliate-products/stats', [AffiliateProductController::class, 'stats']);
     Route::get('/affiliate-products/{platform}/{id}', [AffiliateProductController::class, 'show'])
         ->whereIn('platform', ['shopee', 'lazada', 'tiktok']);
+});
+
+// Live Pricing API (SSE streaming and polling)
+Route::middleware('throttle:public')->prefix('live-pricing')->group(function () {
+    Route::get('/stream', [LivePricingController::class, 'stream']);
+    Route::get('/poll', [LivePricingController::class, 'poll']);
+    Route::get('/explain/{platform}/{id}', [LivePricingController::class, 'explain'])
+        ->whereIn('platform', ['shopee', 'lazada', 'tiktok']);
+    Route::get('/status', [LivePricingController::class, 'status']);
+    Route::post('/toggle', [LivePricingController::class, 'toggle']);
+});
+
+// AI Lowest Price Recommendations (public - Guest Mode accessible)
+Route::middleware('throttle:public')->prefix('recommendations')->group(function () {
+    Route::get('/lowest', [LowestPriceController::class, 'recommendations']);
+});
+
+// Products API using fixed JSON schema (public - Guest Mode accessible)
+Route::middleware('throttle:public')->prefix('v1')->group(function () {
+    Route::get('/products', [LowestPriceController::class, 'products']);
+    Route::get('/products/{id}', [LowestPriceController::class, 'show']);
+    Route::get('/recommendations/lowest', [LowestPriceController::class, 'recommendations']);
 });
 
 

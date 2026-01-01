@@ -1,19 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
 
-import '../../config/app_config.dart';
+import '../../design_system.dart';
 import '../../models/affiliate_product.dart';
-import '../../services/click_tracker.dart';
+import '../../providers/live_pricing_provider.dart';
 import '../../state/product_list_notifier.dart';
-import '../../widgets/affiliate_product_detail_sheet.dart';
-
-const _pageGradient = LinearGradient(
-  colors: [Color(0xFF0A2835), Color(0xFF0D3D4D), Color(0xFF15657B)],
-  begin: Alignment.topCenter,
-  end: Alignment.bottomCenter,
-);
+import 'screens/product_detail_screen.dart';
 
 const _platforms = ['all', 'lazada', 'shopee', 'tiktok'];
 const _sortOptions = [
@@ -84,12 +78,11 @@ class _ExploreProductsScreenState extends ConsumerState<ExploreProductsScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(exploreProductsProvider);
-    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(
-        decoration: const BoxDecoration(gradient: _pageGradient),
+        decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient),
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,12 +92,9 @@ class _ExploreProductsScreenState extends ConsumerState<ExploreProductsScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: Row(
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    GlassIconButton(
+                      icon: Icons.arrow_back,
                       onPressed: () => Navigator.of(context).pop(),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.white.withOpacity(0.1),
-                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -113,23 +103,18 @@ class _ExploreProductsScreenState extends ConsumerState<ExploreProductsScreen> {
                         children: [
                           Text(
                             _title ?? 'Explore Products',
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                            style: AppTheme.headlineSmall,
                           ),
                           if (state.total > 0)
                             Text(
                               '${_formatNumber(state.total)} products',
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.7),
-                                fontSize: 13,
-                              ),
+                              style: AppTheme.bodySmall,
                             ),
                         ],
                       ),
                     ),
+                    // Live pricing toggle
+                    const _LivePricingToggle(),
                   ],
                 ),
               ),
@@ -148,7 +133,7 @@ class _ExploreProductsScreenState extends ConsumerState<ExploreProductsScreen> {
 
               // Content
               Expanded(
-                child: _buildContent(state, scheme),
+                child: _buildContent(state),
               ),
             ],
           ),
@@ -157,7 +142,7 @@ class _ExploreProductsScreenState extends ConsumerState<ExploreProductsScreen> {
     );
   }
 
-  Widget _buildContent(ProductListState state, ColorScheme scheme) {
+  Widget _buildContent(ProductListState state) {
     // Loading state
     if (state.isLoading) {
       return _buildLoadingGrid();
@@ -165,18 +150,26 @@ class _ExploreProductsScreenState extends ConsumerState<ExploreProductsScreen> {
 
     // Error state
     if (state.error != null && state.products.isEmpty) {
-      return _buildErrorState(state.error!, scheme);
+      return GlassErrorState(
+        title: 'Something went wrong',
+        message: state.error!,
+        onRetry: ref.read(exploreProductsProvider.notifier).refresh,
+      );
     }
 
     // Empty state
     if (state.products.isEmpty) {
-      return _buildEmptyState(scheme);
+      return const GlassEmptyState(
+        icon: Icons.shopping_bag_outlined,
+        title: 'No products found',
+        subtitle: 'Try adjusting your filters or search terms',
+      );
     }
 
     // Product grid
     return RefreshIndicator(
       onRefresh: ref.read(exploreProductsProvider.notifier).refresh,
-      color: scheme.primary,
+      color: AppTheme.accentOrange,
       child: GridView.builder(
         controller: _scrollController,
         padding: const EdgeInsets.all(12),
@@ -191,7 +184,7 @@ class _ExploreProductsScreenState extends ConsumerState<ExploreProductsScreen> {
           if (index == state.products.length) {
             return _buildLoadMoreIndicator(state.isLoadingMore);
           }
-          return _ProductCard(product: state.products[index]);
+          return _LiveProductCard(product: state.products[index]);
         },
       ),
     );
@@ -209,85 +202,13 @@ class _ExploreProductsScreenState extends ConsumerState<ExploreProductsScreen> {
         itemBuilder: (context, index) => const _ProductCardSkeleton(),
       );
 
-  Widget _buildErrorState(String error, ColorScheme scheme) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: scheme.error.withOpacity(0.7),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              error,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
-                fontSize: 15,
-              ),
-            ),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: ref.read(exploreProductsProvider.notifier).refresh,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Try Again'),
-              style: FilledButton.styleFrom(
-                backgroundColor: scheme.primary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(ColorScheme scheme) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.shopping_bag_outlined,
-              size: 64,
-              color: Colors.white.withOpacity(0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No products found',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Try adjusting your filters or search terms',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.6),
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildLoadMoreIndicator(bool isLoading) => Center(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: isLoading
               ? const CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Colors.white,
+                  color: AppTheme.accentOrange,
                 )
               : const SizedBox.shrink(),
         ),
@@ -318,8 +239,7 @@ class _FiltersBar extends StatelessWidget {
   final ValueChanged<String> onSortChanged;
 
   @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
+  Widget build(BuildContext context) => SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
@@ -332,18 +252,10 @@ class _FiltersBar extends StatelessWidget {
                 : platform[0].toUpperCase() + platform.substring(1);
             return Padding(
               padding: const EdgeInsets.only(right: 8),
-              child: FilterChip(
-                label: Text(label),
+              child: GlassChip(
+                label: label,
                 selected: isSelected,
-                onSelected: (_) => onPlatformChanged(platform),
-                backgroundColor: Colors.white.withOpacity(0.1),
-                selectedColor: Theme.of(context).colorScheme.primary,
-                labelStyle: TextStyle(
-                  color: isSelected ? Colors.white : Colors.white70,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                ),
-                checkmarkColor: Colors.white,
-                side: BorderSide.none,
+                onTap: () => onPlatformChanged(platform),
               ),
             );
           }),
@@ -359,10 +271,10 @@ class _FiltersBar extends StatelessWidget {
                     child: Row(
                       children: [
                         if (option.$1 == selectedSort)
-                          Icon(
+                          const Icon(
                             Icons.check,
                             size: 18,
-                            color: Theme.of(context).colorScheme.primary,
+                            color: AppTheme.accentOrange,
                           )
                         else
                           const SizedBox(width: 18),
@@ -373,23 +285,20 @@ class _FiltersBar extends StatelessWidget {
                   ),
                 )
                 .toList(),
-            child: Container(
+            child: GlassContainer(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
-              ),
+              borderRadius: AppTheme.radiusLarge,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.sort, size: 18, color: Colors.white70),
+                  const Icon(Icons.sort, size: 18, color: AppTheme.textSecondary),
                   const SizedBox(width: 6),
                   Text(
                     'Sort',
-                    style: TextStyle(color: Colors.white.withOpacity(0.9)),
+                    style: AppTheme.labelMedium,
                   ),
                   const Icon(Icons.arrow_drop_down,
-                      size: 18, color: Colors.white70),
+                      size: 18, color: AppTheme.textSecondary),
                 ],
               ),
             ),
@@ -397,258 +306,14 @@ class _FiltersBar extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-class _ProductCard extends StatelessWidget {
-  const _ProductCard({required this.product});
-
-  final AffiliateProduct product;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final hasDiscount = (product.discount ?? 0) > 0;
-
-    return GestureDetector(
-      onTap: () => _showProductDetails(context),
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFF0D3D4D).withOpacity(0.8),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.1),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image
-            Expanded(
-              flex: 3,
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(16)),
-                    child: CachedNetworkImage(
-                      imageUrl: product.image ?? '',
-                      width: double.infinity,
-                      height: double.infinity,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: Colors.white.withOpacity(0.1),
-                        child: const Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: Colors.white.withOpacity(0.1),
-                        child: Icon(
-                          Icons.image_not_supported_outlined,
-                          color: Colors.white.withOpacity(0.3),
-                          size: 32,
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Platform badge
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _getPlatformColor(product.platform),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        product.platform[0].toUpperCase() +
-                            product.platform.substring(1),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Discount badge
-                  if (hasDiscount)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: scheme.error,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          '-${product.discount?.toInt()}%',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            // Info
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      product.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        height: 1.2,
-                      ),
-                    ),
-                    const Spacer(),
-                    // Price row
-                    Row(
-                      children: [
-                        Text(
-                          '₱${_formatPrice(product.price ?? 0)}',
-                          style: TextStyle(
-                            color: scheme.primary,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        if (hasDiscount && product.originalPrice != null) ...[
-                          const SizedBox(width: 6),
-                          Text(
-                            '₱${_formatPrice(product.originalPrice!)}',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.5),
-                              fontSize: 11,
-                              decoration: TextDecoration.lineThrough,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    // Rating and sales
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.star,
-                          size: 12,
-                          color: Colors.amber.shade400,
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          product.rating?.toStringAsFixed(1) ?? '-',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
-                            fontSize: 11,
-                          ),
-                        ),
-                        if (product.reviewCount != null) ...[
-                          Text(
-                            ' (${_formatCount(product.reviewCount!)})',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.5),
-                              fontSize: 10,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showProductDetails(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => AffiliateProductDetailSheet(
-        product: product,
-        onOpen: () => _openAffiliate(context),
-      ),
-    );
-  }
-
-  Future<void> _openAffiliate(BuildContext context) async {
-    Navigator.of(context).pop();
-    final target = AppConfig.useMockData
-        ? (product.affiliateUrl.isNotEmpty ? product.affiliateUrl : product.url)
-        : ClickTracker.buildClickUri(product: product).toString();
-
-    if (target.trim().isEmpty) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Missing product link')),
-        );
-      }
-      return;
-    }
-
-    final uri = Uri.parse(target);
-    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!ok && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open link')),
-      );
-    }
-  }
-
-  Color _getPlatformColor(String platform) => switch (platform.toLowerCase()) {
-        'lazada' => const Color(0xFF0F146D),
-        'shopee' => const Color(0xFFEE4D2D),
-        'tiktok' => const Color(0xFF000000),
-        _ => const Color(0xFF15657B),
-      };
-
-  String _formatPrice(double price) {
-    if (price >= 1000) {
-      return price.toStringAsFixed(0).replaceAllMapped(
-            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-            (m) => '${m[1]},',
-          );
-    }
-    return price.toStringAsFixed(2);
-  }
-
-  String _formatCount(int number) =>
-      number >= 1000 ? '${(number / 1000).toStringAsFixed(1)}k' : number.toString();
 }
 
 class _ProductCardSkeleton extends StatelessWidget {
   const _ProductCardSkeleton();
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF0D3D4D).withOpacity(0.5),
-        borderRadius: BorderRadius.circular(16),
-      ),
+  Widget build(BuildContext context) => GlassCard(
+      padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -656,11 +321,12 @@ class _ProductCardSkeleton extends StatelessWidget {
           Expanded(
             flex: 3,
             child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+              decoration: const BoxDecoration(
+                color: AppTheme.glassSurface,
                 borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(16)),
+                    BorderRadius.vertical(top: Radius.circular(16)),
               ),
+              child: const GlassShimmer(),
             ),
           ),
           // Info skeleton
@@ -675,7 +341,7 @@ class _ProductCardSkeleton extends StatelessWidget {
                     height: 12,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
+                      color: AppTheme.glassSurface,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -684,7 +350,7 @@ class _ProductCardSkeleton extends StatelessWidget {
                     height: 12,
                     width: 80,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
+                      color: AppTheme.glassSurface,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -693,7 +359,7 @@ class _ProductCardSkeleton extends StatelessWidget {
                     height: 14,
                     width: 60,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
+                      color: AppTheme.glassSurface,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -704,5 +370,436 @@ class _ProductCardSkeleton extends StatelessWidget {
         ],
       ),
     );
+}
+
+/// Live pricing toggle widget for the header
+class _LivePricingToggle extends ConsumerWidget {
+  const _LivePricingToggle();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(livePricingProvider);
+    
+    return GestureDetector(
+      onTap: () {
+        ref.read(livePricingProvider.notifier).setEnabled(!state.enabled);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: state.enabled 
+              ? Colors.green.withOpacity(0.9) 
+              : Colors.white.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: state.enabled 
+              ? [BoxShadow(color: Colors.green.withOpacity(0.4), blurRadius: 6)] 
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (state.enabled) ...[
+              Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 6),
+            ],
+            Icon(
+              state.enabled ? Icons.sync : Icons.sync_disabled,
+              color: Colors.white,
+              size: 16,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              state.enabled ? 'LIVE' : 'OFF',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
+}
+
+/// Live product card with real-time price updates
+class _LiveProductCard extends ConsumerStatefulWidget {
+  const _LiveProductCard({required this.product});
+
+  final AffiliateProduct product;
+
+  @override
+  ConsumerState<_LiveProductCard> createState() => _LiveProductCardState();
+}
+
+class _LiveProductCardState extends ConsumerState<_LiveProductCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+  late Animation<Color?> _colorAnimation;
+  
+  double? _previousPrice;
+  int _priceDirection = 0;
+  
+  final _currencyFormat = NumberFormat.currency(
+    locale: 'en_PH',
+    symbol: '₱',
+    decimalDigits: 0,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    
+    _scaleAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.05), weight: 30),
+      TweenSequenceItem(tween: Tween(begin: 1.05, end: 1.0), weight: 70),
+    ]).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
+    
+    _colorAnimation = ColorTween(
+      begin: Colors.transparent,
+      end: Colors.transparent,
+    ).animate(_animationController);
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final livePricing = ref.watch(livePricingProvider);
+    final product = livePricing.mergeWithLiveData(widget.product);
+    final hasDiscount = (product.discount ?? 0) > 0;
+    final hasAI = product.hasAIPricing;
+
+    // Check for price changes
+    final currentRecommended = product.effectiveRecommendedPrice;
+    if (_previousPrice != null && 
+        currentRecommended != null && 
+        _previousPrice != currentRecommended) {
+      _priceDirection = currentRecommended < _previousPrice! ? -1 : 1;
+      _triggerPriceAnimation();
+    }
+    _previousPrice = currentRecommended;
+
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _scaleAnimation.value,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+              boxShadow: _colorAnimation.value != Colors.transparent
+                  ? [BoxShadow(color: _colorAnimation.value!, blurRadius: 8)]
+                  : null,
+            ),
+            child: child,
+          ),
+        );
+      },
+      child: GestureDetector(
+        onTap: () => _showProductDetails(context, product),
+        child: GlassCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Image
+              Expanded(
+                flex: 3,
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(16)),
+                      child: CachedNetworkImage(
+                        imageUrl: product.image ?? '',
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: AppTheme.glassSurface,
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppTheme.accentOrange,
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: AppTheme.glassSurface,
+                          child: const Icon(
+                            Icons.image_not_supported_outlined,
+                            color: AppTheme.textTertiary,
+                            size: 32,
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Platform badge
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: GlassPlatformBadge(platform: product.platform),
+                    ),
+                    // Live + Discount badges row
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Live indicator
+                          if (hasAI && livePricing.enabled)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: Colors.green,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.fiber_manual_record,
+                                      color: Colors.white, size: 8),
+                                  SizedBox(width: 3),
+                                  Text(
+                                    'LIVE',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          if (hasAI && livePricing.enabled && hasDiscount)
+                            const SizedBox(width: 4),
+                          // Discount badge
+                          if (hasDiscount)
+                            GlassDiscountBadge(discount: product.discount!),
+                        ],
+                      ),
+                    ),
+                    // Savings badge (bottom)
+                    if (product.savings != null && product.savings! > 0)
+                      Positioned(
+                        bottom: 8,
+                        left: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 3),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.green.shade600,
+                                Colors.green.shade400
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.savings,
+                                  color: Colors.white, size: 10),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Save ${_currencyFormat.format(product.savings)}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              // Info
+              Expanded(
+                flex: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        product.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTheme.bodySmall.copyWith(
+                          fontWeight: FontWeight.w500,
+                          height: 1.2,
+                        ),
+                      ),
+                      const Spacer(),
+                      // Price row
+                      Row(
+                        children: [
+                          Text(
+                            '₱${_formatPrice(product.price ?? 0)}',
+                            style: const TextStyle(
+                              color: AppTheme.accentOrange,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          if (hasDiscount && product.originalPrice != null) ...[
+                            const SizedBox(width: 6),
+                            Text(
+                              '₱${_formatPrice(product.originalPrice!)}',
+                              style: const TextStyle(
+                                color: AppTheme.textTertiary,
+                                fontSize: 11,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      // AI Recommendation row
+                      if (hasAI) _buildAIRecommendation(product),
+                      // Rating row
+                      if (!hasAI && product.rating != null)
+                        _buildRatingRow(product),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _triggerPriceAnimation() {
+    final isDown = _priceDirection == -1;
+    
+    _colorAnimation = ColorTween(
+      begin: isDown 
+          ? Colors.green.withOpacity(0.5) 
+          : Colors.orange.withOpacity(0.5),
+      end: Colors.transparent,
+    ).animate(_animationController);
+    
+    _animationController.forward(from: 0);
+  }
+
+  Widget _buildAIRecommendation(AffiliateProduct product) {
+    final recommended = product.effectiveRecommendedPrice;
+    final confidence = product.effectiveConfidence;
+    
+    if (recommended == null) return const SizedBox.shrink();
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.deepPurple.withOpacity(0.3),
+            Colors.blue.withOpacity(0.3),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.auto_awesome, color: AppTheme.textSecondary, size: 10),
+          const SizedBox(width: 4),
+          Text(
+            '₱${_formatPrice(recommended)}',
+            style: AppTheme.labelSmall.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          if (confidence != null) ...[
+            const SizedBox(width: 6),
+            GlassConfidenceIndicator(confidence: confidence),
+          ],
+          // Price direction arrow
+          if (_priceDirection != 0) ...[
+            const SizedBox(width: 4),
+            Icon(
+              _priceDirection == -1 ? Icons.arrow_downward : Icons.arrow_upward,
+              color: _priceDirection == -1 ? Colors.green : Colors.orange,
+              size: 12,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRatingRow(AffiliateProduct product) {
+    return Row(
+      children: [
+        Icon(
+          Icons.star,
+          size: 12,
+          color: Colors.amber.shade400,
+        ),
+        const SizedBox(width: 3),
+        Text(
+          product.rating?.toStringAsFixed(1) ?? '-',
+          style: AppTheme.labelSmall,
+        ),
+        if (product.reviewCount != null) ...[
+          Text(
+            ' (${_formatCount(product.reviewCount!)})',
+            style: const TextStyle(
+              color: AppTheme.textTertiary,
+              fontSize: 10,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  void _showProductDetails(BuildContext context, AffiliateProduct product) {
+    Navigator.of(context).push(
+      GlassPageRoute(
+        page: ProductDetailScreen(product: product),
+      ),
+    );
+  }
+
+  String _formatPrice(double price) {
+    if (price >= 1000) {
+      return price.toStringAsFixed(0).replaceAllMapped(
+            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+            (m) => '${m[1]},',
+          );
+    }
+    return price.toStringAsFixed(2);
+  }
+
+  String _formatCount(int number) =>
+      number >= 1000 ? '${(number / 1000).toStringAsFixed(1)}k' : number.toString();
 }

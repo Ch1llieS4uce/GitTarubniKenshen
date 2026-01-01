@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../design_system.dart';
 import '../../navigation/app_routes.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -21,8 +22,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
+    return GlassScaffold(
       body: SafeArea(
         child: Column(
           children: [
@@ -34,7 +34,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   TextButton(
                     onPressed: () => Navigator.of(context)
                         .pushReplacementNamed(AppRoutes.main),
-                    child: const Text('Skip'),
+                    child: const Text(
+                      'Skip',
+                      style: TextStyle(color: AppTheme.textSecondary),
+                    ),
                   ),
                 ],
               ),
@@ -67,13 +70,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    child: LinearProgressIndicator(
-                      value: (_page + 1) / 3,
-                      backgroundColor: scheme.surfaceContainerHighest,
+                    child: Container(
+                      height: 4,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(2),
+                        color: AppTheme.glassBorder,
+                      ),
+                      child: FractionallySizedBox(
+                        alignment: Alignment.centerLeft,
+                        widthFactor: (_page + 1) / 3,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(2),
+                            gradient: AppTheme.accentGradient,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  FilledButton(
+                  AccentButton(
                     onPressed: () {
                       if (_page < 2) {
                         _controller.nextPage(
@@ -85,7 +101,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       Navigator.of(context)
                           .pushReplacementNamed(AppRoutes.main);
                     },
-                    child: Text(_page < 2 ? 'Next' : 'Start browsing'),
+                    label: _page < 2 ? 'Next' : 'Start browsing',
+                    icon: _page < 2 ? Icons.arrow_forward : Icons.rocket_launch,
                   ),
                 ],
               ),
@@ -106,7 +123,6 @@ class _Slide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.all(28),
       child: Column(
@@ -116,26 +132,23 @@ class _Slide extends StatelessWidget {
             width: 96,
             height: 96,
             decoration: BoxDecoration(
-              color: scheme.primaryContainer,
+              gradient: AppTheme.accentGradient,
               borderRadius: BorderRadius.circular(28),
+              boxShadow: AppTheme.accentGlow,
             ),
-            child: Icon(icon, size: 46, color: scheme.onPrimaryContainer),
+            child: Icon(icon, size: 46, color: Colors.white),
           ),
           const SizedBox(height: 22),
           Text(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+            style: AppTheme.headlineMedium,
           ),
           const SizedBox(height: 10),
           Text(
             body,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: scheme.onSurface.withOpacity(0.75),
-              fontSize: 15,
-              height: 1.35,
-            ),
+            style: AppTheme.bodyMedium.copyWith(height: 1.35),
           ),
         ],
       ),

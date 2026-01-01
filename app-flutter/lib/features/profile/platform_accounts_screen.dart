@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../design_system.dart';
 import '../../models/platform_account.dart';
 import '../../providers.dart';
 import '../../services/platform_accounts_service.dart';
@@ -166,24 +167,42 @@ class _PlatformAccountsScreenState extends ConsumerState<PlatformAccountsScreen>
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: const Text('Platform Accounts'),
+  Widget build(BuildContext context) => GlassScaffold(
+        appBar: GlassAppBar(
+          title: 'Platform Accounts',
+          leading: GlassIconButton(
+            icon: Icons.arrow_back,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
           actions: [
-            IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
+            GlassIconButton(icon: Icons.refresh, onPressed: _load),
+            const SizedBox(width: 8),
           ],
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _openConnect,
-          child: const Icon(Icons.add),
+        floatingActionButton: Container(
+          decoration: BoxDecoration(
+            gradient: AppTheme.accentGradient,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: AppTheme.accentGlow,
+          ),
+          child: FloatingActionButton(
+            onPressed: _openConnect,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
         ),
         body: SafeArea(
           child: _loading
-              ? const Center(child: CircularProgressIndicator())
+              ? const GlassLoadingOverlay(isLoading: true, child: SizedBox.expand())
               : _error != null
-                  ? Center(child: Text(_error!))
+                  ? GlassErrorState(message: _error!, onRetry: _load)
                   : _items.isEmpty
-                      ? const Center(child: Text('No platforms connected'))
+                      ? const GlassEmptyState(
+                          icon: Icons.link_off,
+                          title: 'No platforms connected',
+                          subtitle: 'Connect your store accounts to sync products.',
+                        )
                       : ListView.separated(
                           padding: const EdgeInsets.all(16),
                           itemCount: _items.length,
@@ -191,24 +210,51 @@ class _PlatformAccountsScreenState extends ConsumerState<PlatformAccountsScreen>
                           itemBuilder: (_, i) {
                             final a = _items[i];
                             final last = a.lastSyncedAt?.toLocal().toString();
-                            return ListTile(
-                              tileColor: Theme.of(context).colorScheme.surface,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              title: Text('${a.platform.toUpperCase()} • ${a.accountName}'),
-                              subtitle: Text('Last synced: ${last ?? 'Never'}'),
-                              trailing: FilledButton.tonal(
-                                onPressed: () async {
-                                  await _service.syncNow(a.id);
-                                  if (!context.mounted) {
-                                    return;
-                                  }
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Sync started')),
-                                  );
-                                },
-                                child: const Text('Sync'),
+                            return GlassCard(
+                              padding: const EdgeInsets.all(14),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            GlassPlatformBadge(platform: a.platform),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                a.accountName,
+                                                style: AppTheme.bodyMedium.copyWith(
+                                                  color: AppTheme.textPrimary,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          'Last synced: ${last ?? 'Never'}',
+                                          style: AppTheme.labelSmall,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  GlassButton(
+                                    onPressed: () async {
+                                      await _service.syncNow(a.id);
+                                      if (!context.mounted) {
+                                        return;
+                                      }
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Sync started')),
+                                      );
+                                    },
+                                    label: 'Sync',
+                                  ),
+                                ],
                               ),
                             );
                           },

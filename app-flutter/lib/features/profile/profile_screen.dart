@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../design_system.dart';
 import '../../navigation/app_routes.dart';
 import '../../state/auth_notifier.dart';
 import '../../widgets/guest_mode_badge.dart';
@@ -20,10 +21,10 @@ class ProfileScreen extends ConsumerWidget {
         ? displayName[0].toUpperCase()
         : (isAuthenticated ? 'U' : 'G');
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        actions: const [
+    return GlassScaffold(
+      appBar: const GlassAppBar(
+        title: 'Profile',
+        actions: [
           Padding(
             padding: EdgeInsets.only(right: 12),
             child: GuestModeBadge(compact: true),
@@ -34,46 +35,22 @@ class ProfileScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            Container(
+            // Profile header card
+            GlassCard(
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Theme.of(context).colorScheme.primary.withOpacity(0.15),
-                    Theme.of(context).colorScheme.surface,
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                ),
-              ),
               child: Row(
                 children: [
                   Container(
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [
-                          Theme.of(context).colorScheme.primary,
-                          Theme.of(context).colorScheme.secondary,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      gradient: AppTheme.accentGradient,
                     ),
                     child: CircleAvatar(
                       radius: 30,
                       backgroundColor: Colors.transparent,
                       child: Text(
                         avatarLetter,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                        style: AppTheme.headlineMedium,
                       ),
                     ),
                   ),
@@ -84,27 +61,20 @@ class ProfileScreen extends ConsumerWidget {
                       children: [
                         Text(
                           displayName.isNotEmpty ? displayName : 'Guest',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
+                          style: AppTheme.titleLarge,
                         ),
                         const SizedBox(height: 2),
                         Text(
                           user?.email ?? '',
-                          style: TextStyle(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                          style: AppTheme.bodyMedium,
                         ),
                       ],
                     ),
                   ),
                   if (user?.isAdmin ?? false)
-                    Chip(
-                      label: const Text('Admin'),
-                      backgroundColor:
-                          Theme.of(context).colorScheme.primaryContainer,
+                    const GlassChip(
+                      label: 'Admin',
+                      selected: true,
                     ),
                 ],
               ),
@@ -120,7 +90,7 @@ class ProfileScreen extends ConsumerWidget {
             ],
             _ProfileMenuItem(
               icon: Icons.link,
-              iconColor: const Color(0xFFFF6B4A),
+              iconColor: AppTheme.accentOrange,
               title: 'Platform accounts',
               subtitle: 'Connect and trigger sync',
               onTap: isAuthenticated
@@ -134,7 +104,7 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             _ProfileMenuItem(
               icon: Icons.store_mall_directory_outlined,
-              iconColor: const Color(0xFF15657B),
+              iconColor: AppTheme.secondaryTeal,
               title: 'Inventory tools',
               subtitle: 'Sync and manage your listings',
               onTap: isAuthenticated
@@ -148,7 +118,7 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             _ProfileMenuItem(
               icon: Icons.notifications_none,
-              iconColor: const Color(0xFFF15A29),
+              iconColor: AppTheme.accentWarm,
               title: 'Price alerts',
               subtitle: 'Get notified on price changes',
               onTap: isAuthenticated
@@ -162,25 +132,19 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             _ProfileMenuItem(
               icon: Icons.settings_outlined,
-              iconColor: Colors.white70,
+              iconColor: AppTheme.textSecondary,
               title: 'Settings',
               onTap: () =>
                   Navigator.of(context).pushNamed(AppRoutes.settings),
             ),
             if (isAuthenticated) ...[
               const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.tonalIcon(
-                  onPressed: auth.loading
-                      ? null
-                      : () => ref.read(authNotifierProvider.notifier).logout(),
-                  icon: const Icon(Icons.logout),
-                  label: const Text('Logout'),
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                ),
+              GlassButton(
+                onPressed: auth.loading
+                    ? null
+                    : () => ref.read(authNotifierProvider.notifier).logout(),
+                icon: Icons.logout,
+                label: 'Logout',
               ),
             ],
           ],
@@ -207,60 +171,44 @@ class _ProfileMenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return InkWell(
+    return GlassCard(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Ink(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: scheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.08)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: iconColor, size: 22),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            child: Icon(icon, color: iconColor, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTheme.titleSmall,
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
                   Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                      color: Colors.white,
-                    ),
+                    subtitle!,
+                    style: AppTheme.bodySmall,
                   ),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle!,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.white.withOpacity(0.7),
-                      ),
-                    ),
-                  ],
                 ],
-              ),
+              ],
             ),
-            Icon(
-              Icons.chevron_right,
-              color: Colors.white.withOpacity(0.5),
-            ),
-          ],
-        ),
+          ),
+          const Icon(
+            Icons.chevron_right,
+            color: AppTheme.textTertiary,
+          ),
+        ],
       ),
     );
   }

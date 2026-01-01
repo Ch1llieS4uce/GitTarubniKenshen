@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../design_system.dart';
 import '../../models/affiliate_product.dart';
 import '../../navigation/app_routes.dart';
 import '../../providers.dart';
@@ -78,12 +79,10 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Compare'),
-        actions: const [
+    return GlassScaffold(
+      appBar: const GlassAppBar(
+        title: 'Compare',
+        actions: [
           Padding(
             padding: EdgeInsets.only(right: 12),
             child: GuestModeBadge(compact: true),
@@ -94,47 +93,47 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            const Text(
+            Text(
               'Compare prices across Shopee, Lazada, and TikTok Shop.',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-              ),
+              style: AppTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
-            TextField(
+            GlassTextField(
               controller: _controller,
+              label: 'Search product',
+              hint: 'Enter product name...',
+              prefixIcon: Icons.search,
               textInputAction: TextInputAction.search,
-              decoration: const InputDecoration(
-                labelText: 'Search product',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.search),
-              ),
-              onSubmitted: _compare,
+              onSubmitted: (_) => _compare(_controller.text),
             ),
             const SizedBox(height: 12),
-            FilledButton.icon(
+            AccentButton(
               onPressed: _loading ? null : () => _compare(_controller.text),
-              icon: const Icon(Icons.compare_arrows),
-              label: const Text('Compare now'),
+              icon: Icons.compare_arrows,
+              label: 'Compare now',
             ),
             if (_bestPrice != null) ...[
               const SizedBox(height: 14),
-              Container(
+              GlassCard(
                 padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: scheme.primary.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: scheme.primary.withOpacity(0.25)),
-                ),
                 child: Row(
                   children: [
-                    Icon(Icons.local_offer_outlined, color: scheme.primary),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        gradient: AppTheme.accentGradient,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+                      ),
+                      child: const Icon(Icons.local_offer_outlined, size: 18, color: Colors.white),
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         'Best price found: ₱${_bestPrice!.toStringAsFixed(2)}',
-                        style: const TextStyle(fontWeight: FontWeight.w800),
+                        style: AppTheme.bodyMedium.copyWith(
+                          color: AppTheme.textPrimary,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ],
@@ -143,13 +142,13 @@ class _CompareScreenState extends ConsumerState<CompareScreen> {
             ],
             const SizedBox(height: 16),
             if (_loading)
-              const Center(child: CircularProgressIndicator())
+              const GlassLoadingOverlay(isLoading: true, child: SizedBox(height: 100))
             else if (_error != null)
-              Text(_error!, style: TextStyle(color: scheme.error))
+              GlassErrorState(message: _error!, onRetry: () => _compare(_controller.text))
             else if (_results.isEmpty)
               Text(
-                'No results yet.',
-                style: TextStyle(color: scheme.onSurface.withOpacity(0.7)),
+                'No results yet. Enter a product to compare.',
+                style: AppTheme.bodyMedium,
               )
             else
               ..._results.map(
@@ -189,19 +188,14 @@ class _CompareResultCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final scheme = Theme.of(context).colorScheme;
     final priceText =
         product.price == null ? '—' : '₱${product.price!.toStringAsFixed(2)}';
 
-    return InkWell(
-      onTap: onOpen,
-      borderRadius: BorderRadius.circular(16),
-      child: Ink(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: scheme.surface,
-          borderRadius: BorderRadius.circular(16),
-        ),
+    return GlassCard(
+      padding: const EdgeInsets.all(14),
+      child: InkWell(
+        onTap: onOpen,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
         child: Row(
           children: [
             Expanded(
@@ -212,35 +206,20 @@ class _CompareResultCard extends ConsumerWidget {
                     product.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w700),
+                    style: AppTheme.bodyMedium.copyWith(
+                      color: AppTheme.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: scheme.primary.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          product.platform.toUpperCase(),
-                          style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 11,
-                            color: scheme.primary,
-                          ),
-                        ),
-                      ),
+                      GlassPlatformBadge(platform: product.platform),
                       const Spacer(),
                       Text(
                         priceText,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 14,
+                        style: AppTheme.titleMedium.copyWith(
+                          color: AppTheme.accentOrange,
                         ),
                       ),
                     ],
@@ -249,10 +228,9 @@ class _CompareResultCard extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: 10),
-            IconButton(
-              tooltip: 'Locked actions',
+            GlassIconButton(
+              icon: Icons.lock_outline,
               onPressed: onLocked,
-              icon: const Icon(Icons.lock_outline),
             ),
           ],
         ),

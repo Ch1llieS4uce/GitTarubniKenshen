@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../design_system.dart';
 import '../../navigation/app_routes.dart';
 import '../../state/auth_notifier.dart';
 
@@ -67,20 +68,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authNotifierProvider);
-    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF0A2835),
-              Color(0xFF0D3D4D),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
+        decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient),
         child: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnimation,
@@ -93,12 +84,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                   // Back button
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    child: GlassIconButton(
+                      icon: Icons.arrow_back,
                       onPressed: () => Navigator.of(context).pop(),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.white.withOpacity(0.1),
-                      ),
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -108,11 +96,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                     child: Container(
                       width: 80,
                       height: 80,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [scheme.primary, scheme.tertiary],
-                        ),
+                        gradient: AppTheme.accentGradient,
                       ),
                       child: const Icon(
                         Icons.person_add_rounded,
@@ -123,70 +109,46 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                   ),
                   const SizedBox(height: 32),
                   // Title
-                  const Text(
+                  Text(
                     'Create Account',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: -0.5,
-                    ),
+                    style: AppTheme.headlineLarge.copyWith(letterSpacing: -0.5),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Start your dropshipping journey with smart pricing',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.7),
-                      fontSize: 15,
-                      height: 1.4,
-                    ),
+                    style: AppTheme.bodyMedium.copyWith(height: 1.4),
                   ),
                   const SizedBox(height: 40),
                   // Form Card
-                  Container(
+                  GlassCard(
                     padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0D3D4D).withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: scheme.secondary.withOpacity(0.2),
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
                     child: Form(
                       key: _formKey,
                       child: Column(
                         children: [
                           // Name Field
-                          _AnimatedTextField(
+                          GlassTextField(
                             controller: _name,
                             label: 'Full Name',
                             hint: 'John Doe',
-                            icon: Icons.person_outline,
+                            prefixIcon: Icons.person_outline,
                           ),
                           const SizedBox(height: 20),
                           // Email Field
-                          _AnimatedTextField(
+                          GlassTextField(
                             controller: _email,
                             label: 'Email Address',
                             hint: 'your@email.com',
-                            icon: Icons.email_outlined,
+                            prefixIcon: Icons.email_outlined,
                             keyboardType: TextInputType.emailAddress,
                           ),
                           const SizedBox(height: 20),
                           // Password Field
-                          _AnimatedTextField(
+                          GlassTextField(
                             controller: _password,
                             label: 'Password',
                             hint: '••••••••',
-                            icon: Icons.lock_outline,
+                            prefixIcon: Icons.lock_outline,
                             obscureText: _obscure,
                             suffixIcon: IconButton(
                               onPressed: () =>
@@ -195,7 +157,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                                 _obscure
                                     ? Icons.visibility_outlined
                                     : Icons.visibility_off_outlined,
-                                color: Colors.white.withOpacity(0.6),
+                                color: AppTheme.textSecondary,
                               ),
                             ),
                           ),
@@ -204,22 +166,22 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: scheme.error.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(12),
+                                color: AppTheme.error.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                                 border: Border.all(
-                                  color: scheme.error.withOpacity(0.3),
+                                  color: AppTheme.error.withOpacity(0.3),
                                 ),
                               ),
                               child: Row(
                                 children: [
-                                  Icon(Icons.error_outline,
-                                      color: scheme.error, size: 20),
+                                  const Icon(Icons.error_outline,
+                                      color: AppTheme.error, size: 20),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
                                       auth.error!,
-                                      style: TextStyle(
-                                        color: scheme.error,
+                                      style: const TextStyle(
+                                        color: AppTheme.error,
                                         fontSize: 13,
                                       ),
                                     ),
@@ -230,28 +192,25 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                           ],
                           const SizedBox(height: 24),
                           // Register Button
-                          _AnimatedButton(
-                            onPressed: auth.loading
-                                ? null
-                                : () {
-                                    if (_formKey.currentState?.validate() ??
-                                        false) {
-                                      ref
-                                          .read(authNotifierProvider.notifier)
-                                          .register(
-                                            _name.text.trim(),
-                                            _email.text.trim(),
-                                            _password.text,
-                                          );
-                                    }
-                                  },
-                            loading: auth.loading,
-                            child: const Text(
-                              'Create Account',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                              ),
+                          SizedBox(
+                            width: double.infinity,
+                            child: AccentButton(
+                              onPressed: auth.loading
+                                  ? null
+                                  : () {
+                                      if (_formKey.currentState?.validate() ??
+                                          false) {
+                                        ref
+                                            .read(authNotifierProvider.notifier)
+                                            .register(
+                                              _name.text.trim(),
+                                              _email.text.trim(),
+                                              _password.text,
+                                            );
+                                      }
+                                    },
+                              label: auth.loading ? 'Creating Account...' : 'Create Account',
+                              icon: auth.loading ? null : Icons.person_add,
                             ),
                           ),
                         ],
@@ -265,19 +224,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
                     children: [
                       Text(
                         'Already have an account? ',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
-                        ),
+                        style: AppTheme.bodyMedium,
                       ),
                       TextButton(
                         onPressed: auth.loading
                             ? null
                             : () => Navigator.of(context)
                                 .pushReplacementNamed(AppRoutes.login),
-                        child: Text(
+                        child: const Text(
                           'Sign In',
                           style: TextStyle(
-                            color: scheme.primary,
+                            color: AppTheme.accentOrange,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -293,119 +250,4 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen>
       ),
     );
   }
-}
-
-class _AnimatedTextField extends StatefulWidget {
-  const _AnimatedTextField({
-    required this.controller,
-    required this.label,
-    required this.hint,
-    required this.icon,
-    this.obscureText = false,
-    this.suffixIcon,
-    this.keyboardType,
-  });
-
-  final TextEditingController controller;
-  final String label;
-  final String hint;
-  final IconData icon;
-  final bool obscureText;
-  final Widget? suffixIcon;
-  final TextInputType? keyboardType;
-
-  @override
-  State<_AnimatedTextField> createState() => _AnimatedTextFieldState();
-}
-
-class _AnimatedTextFieldState extends State<_AnimatedTextField> {
-  bool _isFocused = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: _isFocused
-            ? [
-                BoxShadow(
-                  color: scheme.primary.withOpacity(0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ]
-            : [],
-      ),
-      child: Focus(
-        onFocusChange: (focused) => setState(() => _isFocused = focused),
-        child: TextFormField(
-          controller: widget.controller,
-          obscureText: widget.obscureText,
-          keyboardType: widget.keyboardType,
-          style: const TextStyle(color: Colors.white, fontSize: 15),
-          decoration: InputDecoration(
-            labelText: widget.label,
-            hintText: widget.hint,
-            prefixIcon: Icon(widget.icon),
-            suffixIcon: widget.suffixIcon,
-            filled: true,
-          ),
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return 'This field is required';
-            }
-            return null;
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _AnimatedButton extends StatefulWidget {
-  const _AnimatedButton({
-    required this.onPressed,
-    required this.child,
-    this.loading = false,
-  });
-
-  final VoidCallback? onPressed;
-  final Widget child;
-  final bool loading;
-
-  @override
-  State<_AnimatedButton> createState() => _AnimatedButtonState();
-}
-
-class _AnimatedButtonState extends State<_AnimatedButton> {
-  bool _isPressed = false;
-
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-        onTapDown: (_) => setState(() => _isPressed = true),
-        onTapUp: (_) => setState(() => _isPressed = false),
-        onTapCancel: () => setState(() => _isPressed = false),
-        child: AnimatedScale(
-          scale: _isPressed ? 0.96 : 1.0,
-          duration: const Duration(milliseconds: 100),
-          child: SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: widget.onPressed,
-              child: widget.loading
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        color: Colors.white,
-                      ),
-                    )
-                  : widget.child,
-            ),
-          ),
-        ),
-      );
 }
